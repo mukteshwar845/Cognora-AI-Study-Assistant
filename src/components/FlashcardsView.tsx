@@ -231,44 +231,56 @@ export const FlashcardsView: React.FC<FlashcardsViewProps> = ({
             </div>
           </div>
 
-          {/* Action Controls */}
-          <div className="flex items-center justify-between gap-2">
-            <button
-              disabled={currentIndex === 0}
-              onClick={handlePrev}
-              className="px-4 py-2 rounded-xl text-xs font-medium border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#131318] disabled:opacity-30 text-[#4B5563] dark:text-[#A8A8B3] hover:bg-[#F1F3F8] dark:hover:bg-[#19191F]"
-            >
-              &larr; Prev
-            </button>
+          {/* Action Controls - Mobile Ergonomic Layout */}
+          <div className="space-y-3">
+            {/* Top row: Flip & Mark Difficult */}
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={() => setIsFlipped(!isFlipped)}
+                className="flex-1 py-2 px-3 rounded-xl text-xs font-semibold border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#131318] text-[#4B5563] dark:text-[#A8A8B3] flex items-center justify-center gap-1.5 active-press"
+              >
+                <RotateCw className="w-3.5 h-3.5" />
+                <span>{isFlipped ? 'Show Question' : 'Reveal Answer'}</span>
+              </button>
 
-            <div className="flex items-center gap-2">
               <button
                 onClick={handleToggleDifficult}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-1.5 active-press ${
                   currentItem.card.isDifficult
                     ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800'
-                    : 'bg-white dark:bg-[#131318] text-[#4B5563] dark:text-[#A8A8B3] border-[#E2E4E9] dark:border-white/[0.08] hover:bg-[#F1F3F8] dark:hover:bg-[#19191F]'
+                    : 'bg-white dark:bg-[#131318] text-[#4B5563] dark:text-[#A8A8B3] border-[#E2E4E9] dark:border-white/[0.08]'
                 }`}
               >
-                <Star className="w-3.5 h-3.5" />
-                {currentItem.card.isDifficult ? 'Marked Difficult' : 'Mark Difficult'}
+                <Star className={`w-3.5 h-3.5 ${currentItem.card.isDifficult ? 'fill-current' : ''}`} />
+                <span>{currentItem.card.isDifficult ? 'Marked Difficult' : 'Mark Difficult'}</span>
+              </button>
+            </div>
+
+            {/* Bottom primary tier: Prev / Know it! / Next */}
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentIndex === 0}
+                onClick={handlePrev}
+                className="px-4 py-3 min-h-[46px] rounded-xl text-xs font-semibold border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#131318] disabled:opacity-30 text-[#4B5563] dark:text-[#A8A8B3] active-press"
+              >
+                &larr; Prev
               </button>
 
               <button
                 onClick={handleKnowIt}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-2xs"
+                className="flex-1 py-3 min-h-[46px] rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2 shadow-xs active-press"
               >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Know it
+                <CheckCircle2 className="w-4 h-4" />
+                <span>I Know This!</span>
+              </button>
+
+              <button
+                onClick={handleNext}
+                className="px-4 py-3 min-h-[46px] rounded-xl text-xs font-semibold border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#131318] text-[#4B5563] dark:text-[#A8A8B3] active-press"
+              >
+                Next &rarr;
               </button>
             </div>
-
-            <button
-              onClick={handleNext}
-              className="px-4 py-2 rounded-xl text-xs font-medium border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#131318] text-[#4B5563] dark:text-[#A8A8B3] hover:bg-[#F1F3F8] dark:hover:bg-[#19191F]"
-            >
-              Next &rarr;
-            </button>
           </div>
         </div>
       ) : (

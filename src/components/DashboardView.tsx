@@ -126,10 +126,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5 pt-1">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1 w-full sm:w-auto">
               <button
                 onClick={() => onOpenMaterial(primaryMaterial)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white shadow-xs transition-all flex items-center gap-1.5 active:scale-95"
+                className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white shadow-xs transition-all flex items-center justify-center gap-1.5 active-press"
               >
                 <span>Continue Studying</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -137,7 +137,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
               <button
                 onClick={() => onStartExam(primaryMaterial)}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-white/[0.08] hover:bg-[#F1F3F8] dark:hover:bg-white/[0.14] text-[#111827] dark:text-stone-200 border border-[#E2E4E9] dark:border-white/[0.1] transition-all flex items-center gap-1.5 active:scale-95 shadow-2xs"
+                className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-semibold bg-white dark:bg-white/[0.08] hover:bg-[#F1F3F8] dark:hover:bg-white/[0.14] text-[#111827] dark:text-stone-200 border border-[#E2E4E9] dark:border-white/[0.1] transition-all flex items-center justify-center gap-1.5 active-press shadow-2xs"
               >
                 <Zap className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                 <span>Take Timed Exam</span>
@@ -288,7 +288,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           <div className="pt-3 flex items-center justify-between text-xs text-[#8E95A5] dark:text-[#70707B]">
-            <span className="text-[11px] font-mono">Drag & drop or browse</span>
+            <span className="text-[11px] font-mono">
+              <span className="hidden sm:inline">Drag & drop or browse</span>
+              <span className="sm:hidden">Tap to upload</span>
+            </span>
             <span className="font-medium text-[#4F46E5] dark:text-[#818CF8] group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
               Select files →
             </span>
@@ -414,7 +417,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <Clock className="w-3.5 h-3.5 text-violet-500" />
           </div>
           <div className="font-heading font-extrabold text-2xl sm:text-3xl text-[#111827] dark:text-[#F5F5F7]">
-            {user.weeklyHoursSpent ? `${user.weeklyHoursSpent}h 35m` : '12h 35m'}
+            {user.weeklyHoursSpent ? `${Math.floor(user.weeklyHoursSpent)}h ${Math.round((user.weeklyHoursSpent % 1) * 60) || 35}m` : '12h 35m'}
           </div>
           <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
             <TrendingUp className="w-3 h-3" /> +18% this week
@@ -536,18 +539,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           {/* Weekly Streak Motivation */}
-          <div className="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-500/10 border border-amber-200/70 dark:border-amber-500/20 flex items-center justify-between text-xs">
+          <div className="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-500/10 border border-amber-200/70 dark:border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
-              <Flame className="w-4 h-4 text-amber-500 fill-current" />
+              <Flame className="w-4 h-4 text-amber-500 fill-current shrink-0" />
               <span className="text-amber-900 dark:text-amber-300 font-medium">
-                Keep going — one session today keeps your streak alive.
+                Keep going — one session today keeps your streak alive!
               </span>
             </div>
-            <div className="flex items-center gap-1 font-mono text-[10px]">
+            <div className="flex items-center justify-between sm:justify-end gap-1.5 w-full sm:w-auto font-mono text-[10px]">
               {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, idx) => (
                 <span
                   key={idx}
-                  className={`w-5 h-5 rounded-md flex items-center justify-center font-bold ${
+                  className={`w-6 h-6 sm:w-5 sm:h-5 rounded-md flex items-center justify-center font-bold ${
                     idx < 6
                       ? 'bg-amber-500 text-white shadow-2xs'
                       : 'bg-stone-200 dark:bg-[#19191F] text-[#8E95A5] dark:text-[#70707B]'

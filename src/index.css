@@ -110,3 +110,51 @@ aside, header, nav, main, .theme-transition {
 .rotate-y-180 {
   transform: rotateY(180deg);
 }
+
+/* Mobile Touch & Ergonomics */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* iOS Safe Area Padding & Insets */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0rem);
+}
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom, 1rem);
+}
+.bottom-safe {
+  bottom: env(safe-area-inset-bottom, 0rem);
+}
+
+/* Horizontal momentum scroll for mobile pill strips */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+}
+
+/* Hide scrollbars for clean mobile app feel */
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar,
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Mobile touch spring tap feedback */
+.active-press:active {
+  transform: scale(0.97);
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+

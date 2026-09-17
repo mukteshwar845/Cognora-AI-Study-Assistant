@@ -241,39 +241,40 @@ export const QuizView: React.FC<QuizViewProps> = ({
                               setUserAnswers({ ...userAnswers, [currentIndex]: opt });
                             }
                           }}
-                          className={`w-full p-4 rounded-xl border text-xs sm:text-sm text-left transition-all flex items-center justify-between ${
+                          className={`w-full min-h-[52px] p-4 rounded-2xl border text-xs sm:text-sm text-left transition-all flex items-center justify-between active-press cursor-pointer ${
                             isSelected
                               ? 'bg-indigo-50 dark:bg-indigo-950/60 border-[#4F46E5] dark:border-[#818CF8] text-[#4F46E5] dark:text-[#818CF8] font-semibold ring-2 ring-indigo-500/20 shadow-2xs'
                               : 'bg-[#F1F3F8] dark:bg-[#19191F] border-[#E2E4E9] dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/[0.14] text-[#111827] dark:text-[#F5F5F7]'
                           }`}
                         >
-                          <span>{opt}</span>
-                          {isSelected && <Check className="w-4 h-4 text-[#4F46E5] dark:text-[#818CF8]" />}
+                          <span className="pr-2">{opt}</span>
+                          {isSelected && <Check className="w-4 h-4 text-[#4F46E5] dark:text-[#818CF8] shrink-0" />}
                         </button>
                       );
                     })}
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-[#E2E4E9] dark:border-white/[0.08]">
+                  <div className="flex items-center justify-between gap-3 pt-4 border-t border-[#E2E4E9] dark:border-white/[0.08]">
                     <button
                       disabled={currentIndex === 0}
                       onClick={() => setCurrentIndex((p) => Math.max(0, p - 1))}
-                      className="px-4 py-2 rounded-xl text-xs font-medium border border-[#E2E4E9] dark:border-white/[0.08] disabled:opacity-30 hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3]"
+                      className="px-5 py-3 min-h-[46px] rounded-xl text-xs font-semibold border border-[#E2E4E9] dark:border-white/[0.08] disabled:opacity-30 hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3] active-press"
                     >
-                      Previous
+                      &larr; Previous
                     </button>
 
                     {currentIndex < activeQuizList.length - 1 ? (
                       <button
                         onClick={() => setCurrentIndex((p) => p + 1)}
-                        className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white"
+                        className="flex-1 sm:flex-initial px-6 py-3 min-h-[46px] rounded-xl text-xs font-bold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white flex items-center justify-center gap-1.5 shadow-xs active-press"
                       >
-                        Next
+                        <span>Next Question</span>
+                        <span>&rarr;</span>
                       </button>
                     ) : (
                       <button
                         onClick={() => setIsSubmitted(true)}
-                        className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+                        className="flex-1 sm:flex-initial px-6 py-3 min-h-[46px] rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 shadow-xs active-press"
                       >
                         Finish & View Score
                       </button>

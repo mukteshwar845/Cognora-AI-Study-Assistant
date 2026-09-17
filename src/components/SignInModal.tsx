@@ -130,7 +130,7 @@ export const SignInModal: React.FC<SignInModalProps> = ({
 
         {/* Modal Header */}
         <div className="relative z-10 px-6 pt-6 pb-4 flex items-center justify-between border-b border-white/[0.08]">
-          <CognoraLogo size="sm" subtitle="Student Portal" />
+          <CognoraLogo size="sm" subtitle="Student Portal" theme="dark" />
           <button
             onClick={onClose}
             className="p-2 rounded-xl text-stone-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"

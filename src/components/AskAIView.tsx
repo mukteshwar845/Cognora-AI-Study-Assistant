@@ -290,10 +290,10 @@ Select an uploaded material above, choose your preferred answer mode, and ask an
         )}
       </div>
 
-      {/* Suggested Doubt Queries & Input Box */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs scrollbar-none">
-          <span className="text-[#8E95A5] dark:text-[#70707B] shrink-0 font-mono">Try asking:</span>
+      {/* Suggested Doubt Queries & Input Box - Sticky Mobile First */}
+      <div className="sticky bottom-14 sm:bottom-0 bg-white/95 dark:bg-[#0B0B0F]/95 backdrop-blur-md pt-2 pb-1 -mx-2 px-2 sm:mx-0 sm:px-0 z-20 space-y-2.5">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs touch-scroll snap-x scrollbar-none">
+          <span className="text-[#8E95A5] dark:text-[#70707B] shrink-0 font-mono text-[11px]">Try asking:</span>
           {[
             'Explain circular queue condition in simple terms',
             'Why does binary search require sorted data?',
@@ -303,7 +303,7 @@ Select an uploaded material above, choose your preferred answer mode, and ask an
             <button
               key={i}
               onClick={() => setInput(prompt)}
-              className="px-3 py-1 rounded-full whitespace-nowrap bg-white dark:bg-[#19191F] border border-[#E2E4E9] dark:border-white/[0.08] text-[#4B5563] dark:text-[#A8A8B3] hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors shadow-2xs"
+              className="px-3 py-1.5 rounded-full whitespace-nowrap bg-white dark:bg-[#19191F] border border-[#E2E4E9] dark:border-white/[0.08] text-[#4B5563] dark:text-[#A8A8B3] hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors shadow-2xs snap-start active-press text-[11px]"
             >
               {prompt}
             </button>
@@ -316,12 +316,13 @@ Select an uploaded material above, choose your preferred answer mode, and ask an
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={`Ask any doubt about ${activeMaterial?.title || 'your study material'}...`}
-            className="w-full text-xs sm:text-sm pl-4 pr-14 py-3.5 rounded-2xl border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#19191F] text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-[#4F46E5] outline-hidden shadow-xs transition-colors"
+            className="w-full text-xs sm:text-sm pl-4 pr-14 py-3.5 rounded-2xl border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#19191F] text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-[#4F46E5] outline-hidden shadow-xs transition-colors min-h-[48px]"
           />
           <button
             type="submit"
             disabled={!input.trim() || loading}
-            className="absolute right-2 p-2.5 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white disabled:opacity-40 transition-all shadow-2xs active:scale-95"
+            className="absolute right-1.5 w-10 h-10 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white disabled:opacity-40 transition-all shadow-2xs flex items-center justify-center active-press"
+            aria-label="Send Question"
           >
             <Send className="w-4 h-4" />
           </button>

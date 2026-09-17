@@ -230,10 +230,15 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-stone-950/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-colors duration-200">
+    <div className="fixed inset-0 z-50 bg-stone-950/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-6 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-[#131318] border-t sm:border border-[#E2E4E9] dark:border-white/[0.08] rounded-t-3xl sm:rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[90vh] pb-safe transition-colors duration-200 animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
+        {/* Mobile Drag Handle */}
+        <div className="pt-3 pb-1 flex justify-center sm:hidden">
+          <div className="w-12 h-1.5 rounded-full bg-stone-300 dark:bg-white/20" />
+        </div>
+
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[#E2E4E9] dark:border-white/[0.08] flex items-center justify-between">
+        <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-[#E2E4E9] dark:border-white/[0.08] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-2xs">
               <UploadCloud className="w-4 h-4" />

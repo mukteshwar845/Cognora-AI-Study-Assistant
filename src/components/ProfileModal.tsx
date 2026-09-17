@@ -45,9 +45,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-stone-950/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-      <div className="bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] rounded-3xl max-w-md w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="p-6 border-b border-[#E2E4E9] dark:border-white/[0.08] flex items-center justify-between">
+    <div className="fixed inset-0 z-50 bg-stone-950/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150">
+      <div className="bg-white dark:bg-[#131318] border-t sm:border border-[#E2E4E9] dark:border-white/[0.08] rounded-t-3xl sm:rounded-3xl max-w-md w-full shadow-2xl overflow-hidden pb-safe animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
+        {/* Mobile Drag Handle */}
+        <div className="pt-3 pb-1 flex justify-center sm:hidden">
+          <div className="w-12 h-1.5 rounded-full bg-stone-300 dark:bg-white/20" />
+        </div>
+
+        <div className="p-5 sm:p-6 border-b border-[#E2E4E9] dark:border-white/[0.08] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-bold text-sm shadow-xs">
               {name.slice(0, 2).toUpperCase()}

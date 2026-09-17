@@ -402,19 +402,19 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 animate-in fade-in duration-200">
-      {/* Exam Header */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] flex items-center justify-between shadow-2xs transition-colors">
-        <div className="flex items-center gap-3">
-          <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] dark:text-[#818CF8] uppercase tracking-wider font-mono">
-            {examModeType === 'real' ? 'Real Exam Mode' : 'Practice Mode'}
+      {/* Exam Header - Responsive Mobile First */}
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-2xs transition-colors">
+        <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
+          <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] dark:text-[#818CF8] uppercase tracking-wider font-mono shrink-0">
+            {examModeType === 'real' ? 'Real Exam' : 'Practice'}
           </span>
-          <span className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F7] truncate max-w-xs sm:max-w-md">
-            {material.title} &bull; Question {currentIndex + 1} of {examQuestions.length}
+          <span className="font-heading font-semibold text-xs sm:text-sm text-[#111827] dark:text-[#F5F5F7] truncate">
+            Q{currentIndex + 1}/{examQuestions.length} &bull; {material.title}
           </span>
         </div>
 
-        {/* Countdown Timer */}
-        <div className="flex items-center gap-3">
+        {/* Countdown Timer & Controls */}
+        <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
           <div
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-mono text-xs font-bold border transition-colors ${
               isTimeLow
@@ -429,7 +429,7 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
           {examModeType === 'practice' && (
             <button
               onClick={() => setIsPaused(!isPaused)}
-              className="text-xs px-2.5 py-1 rounded-lg border border-[#E2E4E9] dark:border-white/[0.08] hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3]"
+              className="text-xs px-3 py-1.5 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3] active-press"
             >
               {isPaused ? 'Resume' : 'Pause'}
             </button>
@@ -437,7 +437,7 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
 
           <button
             onClick={() => setIsSubmitModalOpen(true)}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white shadow-2xs transition-all active:scale-95"
+            className="px-4 py-1.5 min-h-[36px] rounded-xl text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white shadow-2xs transition-all active-press"
           >
             Submit Exam
           </button>
@@ -484,7 +484,7 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
                 <button
                   key={optIndex}
                   onClick={() => handleSelectAnswer(opt)}
-                  className={`w-full text-left p-4 rounded-xl border text-xs sm:text-sm transition-all flex items-center justify-between ${
+                  className={`w-full text-left min-h-[52px] p-4 rounded-2xl border text-xs sm:text-sm transition-all flex items-center justify-between active-press cursor-pointer ${
                     isSelected
                       ? 'bg-indigo-50 dark:bg-indigo-950/60 border-[#4F46E5] dark:border-[#818CF8] text-[#4F46E5] dark:text-[#818CF8] font-semibold ring-2 ring-indigo-500/20 shadow-2xs'
                       : 'bg-[#F1F3F8] dark:bg-[#19191F] border-[#E2E4E9] dark:border-white/[0.08] hover:border-stone-300 text-[#111827] dark:text-[#F5F5F7]'
@@ -507,11 +507,11 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
           </div>
 
           {/* Navigation bar */}
-          <div className="flex items-center justify-between pt-6 border-t border-[#E2E4E9] dark:border-white/[0.08]">
+          <div className="flex items-center justify-between gap-3 pt-6 border-t border-[#E2E4E9] dark:border-white/[0.08]">
             <button
               disabled={currentIndex === 0}
               onClick={() => setCurrentIndex((p) => Math.max(0, p - 1))}
-              className="px-4 py-2 rounded-xl text-xs font-medium border border-[#E2E4E9] dark:border-white/[0.08] disabled:opacity-30 hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3] flex items-center gap-1.5"
+              className="px-5 py-3 min-h-[46px] rounded-xl text-xs font-semibold border border-[#E2E4E9] dark:border-white/[0.08] disabled:opacity-30 hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3] flex items-center gap-1.5 active-press"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Previous
             </button>
@@ -519,14 +519,15 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
             {currentIndex < examQuestions.length - 1 ? (
               <button
                 onClick={() => setCurrentIndex((p) => p + 1)}
-                className="px-4 py-2 rounded-xl text-xs font-medium bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white flex items-center gap-1.5"
+                className="flex-1 sm:flex-initial px-6 py-3 min-h-[46px] rounded-xl text-xs font-bold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white flex items-center justify-center gap-1.5 shadow-xs active-press"
               >
-                Next <ArrowRight className="w-3.5 h-3.5" />
+                <span>Next Question</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             ) : (
               <button
                 onClick={() => setIsSubmitModalOpen(true)}
-                className="px-5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                className="flex-1 sm:flex-initial px-6 py-3 min-h-[46px] rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs active-press"
               >
                 Review & Submit
               </button>

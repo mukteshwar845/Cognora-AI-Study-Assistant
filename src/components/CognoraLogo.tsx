@@ -25,7 +25,7 @@ export const CognoraMark: React.FC<{
   className?: string;
   glow?: boolean;
   theme?: 'light' | 'dark' | 'auto';
-}> = ({ size = 36, className = '', glow = false }) => {
+}> = ({ size = 36, className = '', glow = false, theme = 'auto' }) => {
   return (
     <svg
       width={size}
@@ -173,46 +173,52 @@ export const CognoraMark: React.FC<{
       </defs>
 
       {/* Squircle Container: Day Version */}
-      <rect
-        x="3"
-        y="3"
-        width="94"
-        height="94"
-        rx="26"
-        fill="url(#cgBgDay)"
-        stroke="url(#cgBorderDay)"
-        strokeWidth="2.2"
-        className="dark:hidden transition-opacity duration-200"
-      />
+      {(theme === 'light' || theme === 'auto') && (
+        <rect
+          x="3"
+          y="3"
+          width="94"
+          height="94"
+          rx="26"
+          fill="url(#cgBgDay)"
+          stroke="url(#cgBorderDay)"
+          strokeWidth="2.2"
+          className={theme === 'auto' ? 'dark:hidden transition-opacity duration-200' : ''}
+        />
+      )}
 
       {/* Squircle Container: Night Version */}
-      <rect
-        x="3"
-        y="3"
-        width="94"
-        height="94"
-        rx="26"
-        fill="url(#cgBgNight)"
-        stroke="url(#cgBorderNight)"
-        strokeWidth="2.4"
-        className="hidden dark:block transition-opacity duration-200"
-      />
+      {(theme === 'dark' || theme === 'auto') && (
+        <rect
+          x="3"
+          y="3"
+          width="94"
+          height="94"
+          rx="26"
+          fill="url(#cgBgNight)"
+          stroke="url(#cgBorderNight)"
+          strokeWidth="2.4"
+          className={theme === 'auto' ? 'hidden dark:block transition-opacity duration-200' : ''}
+        />
+      )}
 
       {/* Subtle top edge luminous sheen (Night only) */}
-      <path
-        d="M 28 4 Q 50 2 72 4"
-        stroke="#818CF8"
-        strokeWidth="1"
-        opacity="0.4"
-        strokeLinecap="round"
-        className="hidden dark:block"
-      />
+      {(theme === 'dark' || theme === 'auto') && (
+        <path
+          d="M 28 4 Q 50 2 72 4"
+          stroke="#818CF8"
+          strokeWidth="1"
+          opacity="0.4"
+          strokeLinecap="round"
+          className={theme === 'auto' ? 'hidden dark:block' : ''}
+        />
+      )}
 
       {/* Inner deep shadow fold of the C */}
       <path
         d="M 44 20 C 32 24 23 36 23 50 C 23 62 29 72 38 78 C 31 70 27 58 27 48 C 27 36 34 26 44 20 Z"
         fill="url(#cgInnerShadowLive)"
-        className="opacity-90 dark:opacity-100"
+        className={theme === 'dark' ? 'opacity-100' : 'opacity-90 dark:opacity-100'}
       />
 
       {/* Left Dimensional Ribbon (Violet to Royal Indigo) */}
@@ -287,7 +293,7 @@ export const CognoraLogo: React.FC<CognoraLogoProps> = ({
   subtitle = 'AI Study Assistant',
   className = '',
   onClick,
-  theme
+  theme = 'auto'
 }) => {
   // Dimensions based on size preset
   const dim = {
@@ -297,6 +303,20 @@ export const CognoraLogo: React.FC<CognoraLogoProps> = ({
     lg: { iconSize: 46, title: 'text-xl', sub: 'text-xs' },
     xl: { iconSize: 58, title: 'text-2xl', sub: 'text-sm' }
   }[size];
+
+  const titleColorClass =
+    theme === 'dark'
+      ? 'text-white group-hover:text-indigo-300'
+      : theme === 'light'
+      ? 'text-[#111827] group-hover:text-indigo-600'
+      : 'text-[#111827] dark:text-[#F5F5F7] group-hover:text-indigo-600 dark:group-hover:text-indigo-300';
+
+  const subtitleColorClass =
+    theme === 'dark'
+      ? 'text-indigo-300 group-hover:text-indigo-200'
+      : theme === 'light'
+      ? 'text-indigo-600 group-hover:text-indigo-700'
+      : 'text-indigo-600 dark:text-[#A8A8B3] group-hover:text-indigo-500 dark:group-hover:text-indigo-300';
 
   return (
     <div
@@ -314,14 +334,14 @@ export const CognoraLogo: React.FC<CognoraLogoProps> = ({
       {showWordmark && (
         <div className="flex flex-col justify-center min-w-0">
           <span
-            className={`font-heading font-extrabold tracking-tight text-[#111827] dark:text-[#F5F5F7] group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors duration-200 leading-tight ${dim.title}`}
+            className={`font-heading font-extrabold tracking-tight transition-colors duration-200 leading-tight ${titleColorClass} ${dim.title}`}
           >
             Cognora
           </span>
 
           {showSubtitle && (
             <span
-              className={`font-sans font-medium tracking-normal text-indigo-600 dark:text-[#A8A8B3] truncate leading-tight mt-0.5 ${dim.sub}`}
+              className={`font-sans font-medium tracking-normal truncate leading-tight mt-0.5 transition-colors duration-200 ${subtitleColorClass} ${dim.sub}`}
             >
               {subtitle}
             </span>

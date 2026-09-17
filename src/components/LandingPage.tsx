@@ -33,6 +33,8 @@ import {
 } from 'lucide-react';
 import { CognoraLogo } from './CognoraLogo';
 import { SignInModal } from './SignInModal';
+import { AboutModal } from './AboutModal';
+import { PrivacyModal } from './PrivacyModal';
 import { UserProfile } from '../types';
 
 interface LandingPageProps {
@@ -50,6 +52,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSignInOpen, setIsSignInOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [signInInitialMode, setSignInInitialMode] = useState<'signin' | 'signup'>('signin');
   const [flashcardFlipped, setFlashcardFlipped] = useState(false);
   const [activePreviewTab, setActivePreviewTab] = useState<'tutor' | 'summary' | 'flashcards' | 'quiz'>('tutor');
@@ -69,7 +73,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#090A0F] text-stone-100 flex flex-col font-sans selection:bg-indigo-500/30 selection:text-indigo-200 antialiased relative overflow-x-hidden">
+    <div className="dark min-h-screen bg-[#090A0F] text-stone-100 flex flex-col font-sans selection:bg-indigo-500/30 selection:text-indigo-200 antialiased relative overflow-x-hidden">
       {/* Background Ambience - Subtle, deep engineered atmosphere without distracting noise */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-[-10%] left-[20%] w-[600px] h-[600px] bg-indigo-900/10 rounded-full blur-[140px]" />
@@ -87,6 +91,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <CognoraLogo
             size="md"
             subtitle="AI Study Assistant"
+            theme="dark"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           />
 
@@ -109,6 +114,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="hover:text-white transition-colors cursor-pointer"
             >
               Interactive Demos
+            </button>
+            <button
+              onClick={() => setIsAboutOpen(true)}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              About
+            </button>
+            <button
+              onClick={() => setIsPrivacyOpen(true)}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              Privacy
             </button>
           </nav>
 
@@ -154,6 +171,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 className="text-left py-1 hover:text-white cursor-pointer"
               >
                 Interactive Demos
+              </button>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setIsAboutOpen(true);
+                }}
+                className="text-left py-1 hover:text-white cursor-pointer flex items-center justify-between"
+              >
+                <span>About Cognora</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono">Mission</span>
+              </button>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setIsPrivacyOpen(true);
+                }}
+                className="text-left py-1 hover:text-white cursor-pointer flex items-center justify-between"
+              >
+                <span>Privacy Policy</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">100% Safe</span>
               </button>
             </div>
             <div className="pt-4 border-t border-white/[0.08] flex flex-col gap-2.5">
@@ -1112,51 +1149,194 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           FOOTER
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <footer className="relative z-10 border-t border-white/[0.07] py-10 px-4 sm:px-6 lg:px-8 bg-[#07080C] text-xs text-stone-400">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <CognoraLogo
-              size="sm"
-              subtitle="AI Study Assistant"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            />
+      <footer className="relative z-10 border-t border-white/[0.08] bg-[#07080D] pt-14 pb-12 px-4 sm:px-6 lg:px-8 text-stone-400">
+        <div className="max-w-7xl mx-auto space-y-12">
+          {/* Top Multi-column Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
+            {/* Col 1 & 2: Brand & Trust */}
+            <div className="lg:col-span-2 space-y-4">
+              <CognoraLogo
+                size="md"
+                subtitle="AI Study Assistant"
+                theme="dark"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              />
+              <p className="text-xs sm:text-sm text-stone-400 max-w-sm leading-relaxed">
+                Cognora transforms lecture slides, textbooks, and notes into active recall flashcards, timed exam simulations, and document-grounded AI tutoring.
+              </p>
+
+              {/* Status & Trust Badges */}
+              <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-2.5">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-medium text-emerald-400 w-fit">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                  <span>Cognora Study Engine Active</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[11px] font-medium text-indigo-300 w-fit">
+                  <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>100% Student Data Protection</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Col 3: Platform */}
+            <div className="space-y-3">
+              <h4 className="font-heading font-semibold text-xs uppercase tracking-wider text-stone-200">
+                Platform
+              </h4>
+              <ul className="space-y-2.5 text-xs">
+                <li>
+                  <button
+                    onClick={() => scrollToSection('how-it-works')}
+                    className="text-stone-400 hover:text-white transition-colors cursor-pointer text-left"
+                  >
+                    How It Works
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => scrollToSection('features')}
+                    className="text-stone-400 hover:text-white transition-colors cursor-pointer text-left"
+                  >
+                    Features
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => scrollToSection('interactive-previews')}
+                    className="text-stone-400 hover:text-white transition-colors cursor-pointer text-left"
+                  >
+                    Interactive Demos
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={onStartStudying}
+                    className="text-stone-400 hover:text-indigo-300 transition-colors cursor-pointer text-left flex items-center gap-1"
+                  >
+                    <span>Study Workspace</span>
+                    <ArrowRight className="w-3 h-3 text-indigo-400" />
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 4: About & Academic */}
+            <div className="space-y-3">
+              <h4 className="font-heading font-semibold text-xs uppercase tracking-wider text-stone-200">
+                About & Mission
+              </h4>
+              <ul className="space-y-2.5 text-xs">
+                <li>
+                  <button
+                    onClick={() => setIsAboutOpen(true)}
+                    className="text-stone-400 hover:text-white transition-colors cursor-pointer text-left flex items-center gap-1.5"
+                  >
+                    <span>About Cognora</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">Mission</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setIsAboutOpen(true)}
+                    className="text-stone-400 hover:text-white transition-colors cursor-pointer text-left"
+                  >
+                    Academic Integrity
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setIsAboutOpen(true)}
+                    className="text-stone-400 hover:text-white transition-colors cursor-pointer text-left"
+                  >
+                    Active Recall Method
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setIsAboutOpen(true)}
+                    className="text-stone-400 hover:text-white transition-colors cursor-pointer text-left"
+                  >
+                    Zero-Hallucination Guarantee
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 5: Privacy & Security */}
+            <div className="space-y-3">
+              <h4 className="font-heading font-semibold text-xs uppercase tracking-wider text-stone-200">
+                Privacy & Data
+              </h4>
+              <ul className="space-y-2.5 text-xs">
+                <li>
+                  <button
+                    onClick={() => setIsPrivacyOpen(true)}
+                    className="text-stone-400 hover:text-white transition-colors cursor-pointer text-left flex items-center gap-1.5"
+                  >
+                    <span>Privacy Policy</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">Protected</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setIsPrivacyOpen(true)}
+                    className="text-stone-400 hover:text-white transition-colors cursor-pointer text-left"
+                  >
+                    Student Data Rights
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setIsPrivacyOpen(true)}
+                    className="text-stone-400 hover:text-white transition-colors cursor-pointer text-left"
+                  >
+                    Zero AI Training Policy
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setIsPrivacyOpen(true)}
+                    className="text-stone-400 hover:text-white transition-colors cursor-pointer text-left"
+                  >
+                    Security & Encryption
+                  </button>
+                </li>
+              </ul>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 text-stone-400">
-            <button
-              onClick={() => scrollToSection('how-it-works')}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              How It Works
-            </button>
-            <button
-              onClick={() => scrollToSection('features')}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              Features
-            </button>
-            <button
-              onClick={() => scrollToSection('interactive-previews')}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              Interactive Demos
-            </button>
-            <button
-              onClick={() => handleOpenSignIn('signin')}
-              className="hover:text-white transition-colors cursor-pointer text-indigo-400 font-semibold"
-            >
-              Log in
-            </button>
-            <button
-              onClick={() => handleOpenSignIn('signup')}
-              className="hover:text-white transition-colors cursor-pointer text-stone-300"
-            >
-              Create Account
-            </button>
-          </div>
+          {/* Bottom Bar: Copyright & Quick Links */}
+          <div className="pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-400">
+            <div className="flex items-center gap-2 text-center sm:text-left">
+              <span>&copy; 2026 Cognora AI Study Assistant. Built for focused learners worldwide.</span>
+            </div>
 
-          <div className="text-stone-400">
-            &copy; 2026 Cognora &bull; Your Materials. Your Knowledge. Your AI Tutor.
+            <div className="flex flex-wrap items-center justify-center gap-5 text-stone-400">
+              <button
+                onClick={() => setIsAboutOpen(true)}
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                About
+              </button>
+              <button
+                onClick={() => setIsPrivacyOpen(true)}
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                Privacy Policy
+              </button>
+              <button
+                onClick={() => handleOpenSignIn('signin')}
+                className="hover:text-white transition-colors cursor-pointer text-indigo-400 font-semibold"
+              >
+                Log in
+              </button>
+              <button
+                onClick={() => handleOpenSignIn('signup')}
+                className="hover:text-white transition-colors cursor-pointer text-stone-300"
+              >
+                Create Account
+              </button>
+            </div>
           </div>
         </div>
       </footer>
@@ -1174,6 +1354,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             onStartStudying();
           }
         }}
+      />
+
+      {/* About Cognora Modal */}
+      <AboutModal
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
+        onStartStudying={onStartStudying}
+      />
+
+      {/* Privacy Policy Modal */}
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
       />
     </div>
   );

@@ -3,7 +3,8 @@ import {
   Flame,
   Bell,
   Maximize2,
-  ChevronRight
+  ChevronRight,
+  Menu
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { CognoraLogo } from './CognoraLogo';
@@ -21,6 +22,7 @@ interface NavbarProps {
   onOpenUpload: () => void;
   onToggleLanding: () => void;
   onEnterFocusMode?: () => void;
+  onOpenDrawer?: () => void;
   themePreference?: ThemePreference;
   resolvedTheme?: ResolvedTheme;
   onSelectThemePreference?: (pref: ThemePreference) => void;
@@ -37,6 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenUpload,
   onToggleLanding,
   onEnterFocusMode,
+  onOpenDrawer,
   themePreference = darkMode ? 'dark' : 'light',
   resolvedTheme = darkMode ? 'dark' : 'light',
   onSelectThemePreference
@@ -69,10 +72,25 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="h-14 border-b border-[#E2E4E9] dark:border-white/[0.08] bg-white/85 dark:bg-[#131318]/85 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between transition-colors duration-200">
-      {/* Left: Brand / Tab Title & Breadcrumb */}
-      <div className="flex items-center gap-2.5 min-w-0">
-        <div className="lg:hidden shrink-0">
+    <header className="h-14 border-b border-[#E2E4E9] dark:border-white/[0.08] bg-white/85 dark:bg-[#131318]/85 backdrop-blur-md sticky top-0 z-30 px-3 sm:px-6 flex items-center justify-between transition-colors duration-200">
+      {/* Left: Hamburger (mobile) + Brand / Tab Title & Breadcrumb */}
+      <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+        {onOpenDrawer && (
+          <button
+            onClick={onOpenDrawer}
+            className="lg:hidden p-1.5 -ml-1 rounded-xl text-[#4B5563] dark:text-[#A8A8B3] hover:text-[#111827] dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/[0.06] active-press transition-colors"
+            title="Open Menu"
+            aria-label="Open Navigation Menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        )}
+
+        <div
+          className="lg:hidden shrink-0 cursor-pointer active-press"
+          onClick={onToggleLanding}
+          title="Return to Landing Page"
+        >
           <CognoraLogo
             size="sm"
             showSubtitle={false}
@@ -94,10 +112,10 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Right: Quick actions & controls */}
-      <div className="flex items-center gap-2 sm:gap-2.5">
+      <div className="flex items-center gap-1.5 sm:gap-2.5">
         {/* Streak Pill */}
         <div
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-600 dark:text-amber-400 text-xs font-semibold font-mono"
+          className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-600 dark:text-amber-400 text-xs font-semibold font-mono"
           title={`${user.streakDays} Day Study Streak`}
         >
           <Flame className="w-3.5 h-3.5 fill-current animate-pulse" />
@@ -117,24 +135,26 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         )}
 
-        {/* Theme Switcher Component */}
-        {onSelectThemePreference ? (
-          <ThemeSwitcher
-            preference={themePreference}
-            resolvedTheme={resolvedTheme}
-            onSelectPreference={onSelectThemePreference}
-            variant="dropdown"
-          />
-        ) : (
-          <button
-            onClick={onToggleDarkMode}
-            className="p-1.5 rounded-lg text-[#4B5563] hover:text-[#111827] dark:text-[#A8A8B3] dark:hover:text-white hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] transition-colors"
-            title={darkMode ? 'Switch to Light' : 'Switch to Dark'}
-            aria-label="Toggle Theme"
-          >
-            {darkMode ? '🌙' : '☀️'}
-          </button>
-        )}
+        {/* Theme Switcher Component (hidden on mobile, accessible via drawer/profile) */}
+        <div className="hidden sm:block">
+          {onSelectThemePreference ? (
+            <ThemeSwitcher
+              preference={themePreference}
+              resolvedTheme={resolvedTheme}
+              onSelectPreference={onSelectThemePreference}
+              variant="dropdown"
+            />
+          ) : (
+            <button
+              onClick={onToggleDarkMode}
+              className="p-1.5 rounded-lg text-[#4B5563] hover:text-[#111827] dark:text-[#A8A8B3] dark:hover:text-white hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] transition-colors"
+              title={darkMode ? 'Switch to Light' : 'Switch to Dark'}
+              aria-label="Toggle Theme"
+            >
+              {darkMode ? '🌙' : '☀️'}
+            </button>
+          )}
+        </div>
 
         {/* Notifications */}
         <button

@@ -44,13 +44,11 @@ import { CommunityView } from './components/CommunityView';
 import { UploadModal } from './components/UploadModal';
 import { ProfileModal } from './components/ProfileModal';
 import { NotificationDrawer } from './components/NotificationDrawer';
+import { MobileDrawer } from './components/MobileDrawer';
 
 export default function App() {
-  // Navigation & View State
-  const [showLanding, setShowLanding] = useState<boolean>(() => {
-    const visited = localStorage.getItem('study_assistant_visited');
-    return !visited;
-  });
+  // Navigation & View State - Always starts on landing page on initial load & page refresh
+  const [showLanding, setShowLanding] = useState<boolean>(true);
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
   const [activeMaterial, setActiveMaterial] = useState<StudyMaterial | null>(null);
   const [examMaterial, setExamMaterial] = useState<StudyMaterial | null>(null);
@@ -60,6 +58,7 @@ export default function App() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   // Dark Mode
   const [darkMode, setDarkMode] = useState<boolean>(() => {
@@ -282,7 +281,6 @@ export default function App() {
   };
 
   const handleEnterDashboard = () => {
-    localStorage.setItem('study_assistant_visited', 'true');
     setShowLanding(false);
     setCurrentTab('dashboard');
   };
@@ -329,7 +327,7 @@ export default function App() {
         )}
 
         {/* Main Content Pane */}
-        <div className={`flex-1 flex flex-col min-w-0 ${isFocusMode ? 'pb-8' : 'pb-20 lg:pb-8'}`}>
+        <div className={`flex-1 flex flex-col min-w-0 ${isFocusMode ? 'pb-8' : 'pb-28 lg:pb-8'}`}>
           {/* Top Navbar (hidden in focus mode) */}
           {!isFocusMode && (
             <Navbar
@@ -342,6 +340,7 @@ export default function App() {
               onOpenProfile={() => setIsProfileOpen(true)}
               onOpenUpload={() => setIsUploadOpen(true)}
               onToggleLanding={() => setShowLanding(true)}
+              onOpenDrawer={() => setIsMobileDrawerOpen(true)}
               onEnterFocusMode={() => {
                 if (!activeMaterial && materials.length > 0) {
                   setActiveMaterial(materials[0]);
@@ -353,7 +352,7 @@ export default function App() {
           )}
 
           {/* Dynamic Page Views */}
-          <main className={`flex-1 ${isFocusMode ? 'p-3 sm:p-6 max-w-5xl w-full mx-auto' : 'p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto'}`}>
+          <main className={`flex-1 ${isFocusMode ? 'p-3 sm:p-6 max-w-5xl w-full mx-auto' : 'p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto'}`}>
             {/* View 1: Student Dashboard */}
             {currentTab === 'dashboard' && (
               <DashboardView
@@ -540,8 +539,29 @@ export default function App() {
             }
           }}
           onOpenUpload={() => setIsUploadOpen(true)}
+          onOpenDrawer={() => setIsMobileDrawerOpen(true)}
         />
       )}
+
+      {/* Mobile Slide-up Full Menu Drawer */}
+      <MobileDrawer
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
+        currentTab={currentTab}
+        onSelectTab={(tab) => {
+          if (tab !== 'workspace') setIsFocusMode(false);
+          setCurrentTab(tab);
+          if (tab === 'workspace' && !activeMaterial && materials.length > 0) {
+            setActiveMaterial(materials[0]);
+          }
+        }}
+        onOpenUpload={() => setIsUploadOpen(true)}
+        onOpenProfile={() => setIsProfileOpen(true)}
+        onToggleLanding={() => setShowLanding(true)}
+        user={user}
+        darkMode={darkMode}
+        onToggleDarkMode={() => setDarkMode(!darkMode)}
+      />
 
       {/* Upload Modal */}
       <UploadModal
