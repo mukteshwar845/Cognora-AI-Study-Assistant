@@ -1,0 +1,6 @@
+{
+  "name": "AI Study Assistant",
+  "description": "Context-aware doubt solver and exam preparation platform transforming study materials into summaries, notes, quizzes, flashcards, and revision plans.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
