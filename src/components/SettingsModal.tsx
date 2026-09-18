@@ -25,23 +25,54 @@ import {
   Zap,
   Target,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Brain,
+  Rocket,
+  Code,
+  Atom,
+  Plus,
+  Trash2,
+  Calendar
 } from 'lucide-react';
 import {
   AppSettings,
   AnswerMode,
   GradingScale,
   AITutorPersona,
-  SpacedRepetitionSpeed
+  SpacedRepetitionSpeed,
+  UserProfile,
+  AcademicLevel,
+  UpcomingExamItem
 } from '../types';
 import { ThemePreference, ResolvedTheme } from '../lib/theme';
 import { calculateStorageUsage } from '../lib/storage';
+
+const AVATAR_GRADIENTS = [
+  { id: 'indigo', class: 'from-indigo-600 via-purple-600 to-violet-500', name: 'Indigo Aura' },
+  { id: 'emerald', class: 'from-emerald-600 via-teal-600 to-cyan-500', name: 'Emerald Spark' },
+  { id: 'sunset', class: 'from-amber-500 via-rose-500 to-pink-600', name: 'Sunset Glow' },
+  { id: 'cyan', class: 'from-cyan-600 via-blue-600 to-indigo-700', name: 'Deep Ocean' },
+  { id: 'dark', class: 'from-stone-800 via-stone-900 to-black', name: 'Midnight Onyx' }
+];
+
+const AVATAR_ICONS = [
+  { id: 'initials', label: 'Initials' },
+  { id: 'brain', icon: Brain, label: 'Brain' },
+  { id: 'graduation', icon: GraduationCap, label: 'Scholar' },
+  { id: 'sparkles', icon: Sparkles, label: 'Magic' },
+  { id: 'rocket', icon: Rocket, label: 'Rocket' },
+  { id: 'code', icon: Code, label: 'Coder' },
+  { id: 'atom', icon: Atom, label: 'Physics' }
+];
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   settings: AppSettings;
   onSaveSettings: (updated: AppSettings) => void;
+  user?: UserProfile;
+  onSaveUser?: (updated: UserProfile) => void;
+  initialTab?: TabKey;
   themePreference?: ThemePreference;
   resolvedTheme?: ResolvedTheme;
   onSelectThemePreference?: (pref: ThemePreference) => void;
@@ -52,13 +83,16 @@ interface SettingsModalProps {
   onResetDefaults?: () => void;
 }
 
-type TabKey = 'academic' | 'ai' | 'notifications' | 'data';
+type TabKey = 'profile' | 'academic' | 'ai' | 'notifications' | 'data';
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
   settings,
   onSaveSettings,
+  user,
+  onSaveUser,
+  initialTab = 'profile',
   themePreference,
   resolvedTheme,
   onSelectThemePreference,
@@ -68,8 +102,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onResetProgress,
   onResetDefaults
 }) => {
-  const [activeTab, setActiveTab] = useState<TabKey>('academic');
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
   const [formData, setFormData] = useState<AppSettings>(() => ({ ...settings }));
+  const [profileData, setProfileData] = useState<UserProfile | null>(() => (user ? { ...user } : null));
+  const [newSubject, setNewSubject] = useState('');
+  const [newWeakTopic, setNewWeakTopic] = useState('');
+  const [newStrongTopic, setNewStrongTopic] = useState('');
+  const [newExamSubject, setNewExamSubject] = useState('');
+  const [newExamDate, setNewExamDate] = useState('');
+  const [newExamTarget, setNewExamTarget] = useState('90');
+  const [showAddExam, setShowAddExam] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -83,13 +125,109 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   React.useEffect(() => {
     if (isOpen && !prevIsOpen.current) {
       setFormData({ ...settings });
+      if (user) setProfileData({ ...user });
+      if (initialTab) setActiveTab(initialTab);
       setStorageInfo(calculateStorageUsage());
       setSaveSuccess(false);
       setImportStatus(null);
       setTestResult(null);
+      setShowAddExam(false);
     }
     prevIsOpen.current = isOpen;
-  }, [isOpen, settings]);
+  }, [isOpen, settings, user, initialTab]);
+
+  const handleAddSubject = () => {
+    if (!newSubject.trim() || !profileData) return;
+    const current = profileData.subjectsEnrolled || [];
+    if (!current.includes(newSubject.trim())) {
+      setProfileData({
+        ...profileData,
+        subjectsEnrolled: [...current, newSubject.trim()]
+      });
+    }
+    setNewSubject('');
+  };
+
+  const handleRemoveSubject = (subject: string) => {
+    if (!profileData) return;
+    const current = profileData.subjectsEnrolled || [];
+    setProfileData({
+      ...profileData,
+      subjectsEnrolled: current.filter((s) => s !== subject)
+    });
+  };
+
+  const handleAddExam = () => {
+    if (!newExamSubject.trim() || !newExamDate || !profileData) return;
+    const targetDate = new Date(newExamDate);
+    const today = new Date();
+    const diffTime = targetDate.getTime() - today.getTime();
+    const daysLeft = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+    const newExam: UpcomingExamItem = {
+      id: `exam_${Date.now()}`,
+      subject: newExamSubject.trim(),
+      date: newExamDate,
+      daysLeft,
+      targetScore: Number(newExamTarget) || 90
+    };
+
+    const currentExams = profileData.upcomingExams || profileData.targetExams || [];
+    setProfileData({
+      ...profileData,
+      upcomingExams: [...currentExams, newExam],
+      targetExams: [...currentExams, newExam]
+    });
+
+    setNewExamSubject('');
+    setNewExamDate('');
+    setShowAddExam(false);
+  };
+
+  const handleRemoveExam = (id: string) => {
+    if (!profileData) return;
+    const currentExams = profileData.upcomingExams || profileData.targetExams || [];
+    const updated = currentExams.filter((e) => e.id !== id);
+    setProfileData({
+      ...profileData,
+      upcomingExams: updated,
+      targetExams: updated
+    });
+  };
+
+  const handleAddWeakTopic = () => {
+    if (!newWeakTopic.trim() || !profileData) return;
+    setProfileData({
+      ...profileData,
+      weakTopics: [...(profileData.weakTopics || []), newWeakTopic.trim()]
+    });
+    setNewWeakTopic('');
+  };
+
+  const handleRemoveWeakTopic = (topic: string) => {
+    if (!profileData) return;
+    setProfileData({
+      ...profileData,
+      weakTopics: (profileData.weakTopics || []).filter((t) => t !== topic)
+    });
+  };
+
+  const handleAddStrongTopic = () => {
+    if (!newStrongTopic.trim() || !profileData) return;
+    setProfileData({
+      ...profileData,
+      strongTopics: [...(profileData.strongTopics || []), newStrongTopic.trim()]
+    });
+    setNewStrongTopic('');
+  };
+
+  const handleRemoveStrongTopic = (topic: string) => {
+    if (!profileData) return;
+    setProfileData({
+      ...profileData,
+      strongTopics: (profileData.strongTopics || []).filter((t) => t !== topic)
+    });
+  };
 
   const handleTestApiKey = async () => {
     setIsTestingKey(true);
@@ -140,6 +278,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const handleSave = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     onSaveSettings(formData);
+    if (profileData && onSaveUser) {
+      onSaveUser(profileData);
+    }
     setSaveSuccess(true);
     setTimeout(() => {
       setSaveSuccess(false);
@@ -161,6 +302,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   const tabs: { id: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { id: 'profile', label: 'Student Profile', icon: User },
     { id: 'academic', label: 'Academic & Goals', icon: GraduationCap },
     { id: 'ai', label: 'AI Tutor & Intelligence', icon: Sparkles },
     { id: 'notifications', label: 'Alerts & Habits', icon: Bell },
@@ -268,7 +410,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   }}
                   className="px-3 py-2 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-500/20 whitespace-nowrap"
                 >
-                  Edit Profile
+                  View Profile Card
                 </button>
               </div>
             )}
@@ -276,6 +418,455 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Active Tab Panel Content */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+            {/* TAB: STUDENT PROFILE & IDENTITY */}
+            {activeTab === 'profile' && profileData && (
+              <div className="space-y-5 animate-in fade-in duration-150">
+                <div>
+                  <h3 className="font-heading font-bold text-sm text-[#111827] dark:text-[#F5F5F7]">
+                    Student Profile & Academic Identity
+                  </h3>
+                  <p className="text-xs text-[#8E95A5] dark:text-[#70707B]">
+                    Configure your student credentials, avatar style, enrolled coursework, and target exam deadlines.
+                  </p>
+                </div>
+
+                {/* Avatar Customization */}
+                <div className="p-4 rounded-2xl bg-stone-50 dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.08] space-y-3.5">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${profileData.avatarColor || 'from-indigo-600 via-purple-600 to-violet-500'} text-white flex items-center justify-center font-bold text-lg shadow-md shrink-0`}
+                    >
+                      {(() => {
+                        const iconId = profileData.avatarIcon || 'initials';
+                        const activeIconObj = AVATAR_ICONS.find((i) => i.id === iconId);
+                        if (activeIconObj && activeIconObj.icon) {
+                          const IconComp = activeIconObj.icon;
+                          return <IconComp className="w-7 h-7" />;
+                        }
+                        return profileData.name.slice(0, 2).toUpperCase();
+                      })()}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-[#111827] dark:text-[#F5F5F7]">
+                        Avatar Appearance & Symbol
+                      </div>
+                      <div className="text-[11px] text-stone-500">
+                        Pick a color palette and student badge for your profile.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Gradient Themes */}
+                  <div className="flex items-center gap-2 flex-wrap pt-1">
+                    {AVATAR_GRADIENTS.map((g) => (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => setProfileData({ ...profileData, avatarColor: g.class })}
+                        className={`w-7 h-7 rounded-full bg-gradient-to-tr ${g.class} transition-transform ${
+                          profileData.avatarColor === g.class ? 'ring-2 ring-offset-2 ring-indigo-500 scale-110' : 'hover:scale-105'
+                        }`}
+                        title={g.name}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Icon Symbols */}
+                  <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                    {AVATAR_ICONS.map((iconOpt) => (
+                      <button
+                        key={iconOpt.id}
+                        type="button"
+                        onClick={() => setProfileData({ ...profileData, avatarIcon: iconOpt.id })}
+                        className={`px-2.5 py-1 rounded-lg border text-xs flex items-center gap-1.5 transition-all ${
+                          (profileData.avatarIcon || 'initials') === iconOpt.id
+                            ? 'bg-indigo-600 text-white border-indigo-600 font-semibold'
+                            : 'bg-white dark:bg-[#19191F] text-stone-700 dark:text-stone-300 border-stone-200 dark:border-white/[0.08] hover:border-indigo-300'
+                        }`}
+                      >
+                        {iconOpt.icon && <iconOpt.icon className="w-3.5 h-3.5" />}
+                        <span>{iconOpt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Name & Academic Tagline */}
+                <div className="p-4 rounded-2xl bg-stone-50 dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.08] space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F7] block mb-1">
+                      Student Full Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={profileData.name}
+                      onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#19191F] text-xs font-medium text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F7] block mb-1">
+                      Study Motto / Academic Tagline
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={profileData.bio || ''}
+                      onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                      placeholder="e.g. Master algorithms through disciplined spaced repetition. Targeting Dean's Honor Roll."
+                      className="w-full p-2.5 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#19191F] text-xs text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
+                    />
+                  </div>
+                </div>
+
+                {/* University & Degree Details */}
+                <div className="p-4 rounded-2xl bg-stone-50 dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.08] space-y-3.5">
+                  <div className="text-xs font-bold text-[#111827] dark:text-[#F5F5F7] flex items-center gap-1.5">
+                    <GraduationCap className="w-3.5 h-3.5 text-indigo-500" />
+                    <span>Academic Standing & Program</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-[#4B5563] dark:text-[#A8A8B3] block mb-1">
+                        University / Institution
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.institution || ''}
+                        onChange={(e) => setProfileData({ ...profileData, institution: e.target.value })}
+                        placeholder="e.g. Stanford / MIT / IIT"
+                        className="w-full p-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#19191F] text-xs text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-[#4B5563] dark:text-[#A8A8B3] block mb-1">
+                        Degree / Major Program
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.degree || ''}
+                        onChange={(e) => setProfileData({ ...profileData, degree: e.target.value })}
+                        placeholder="e.g. B.Tech Computer Science"
+                        className="w-full p-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#19191F] text-xs text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-[#4B5563] dark:text-[#A8A8B3] block mb-1">
+                        Academic Level
+                      </label>
+                      <select
+                        value={profileData.academicLevel || 'undergraduate'}
+                        onChange={(e) =>
+                          setProfileData({ ...profileData, academicLevel: e.target.value as AcademicLevel })
+                        }
+                        className="w-full p-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#19191F] text-xs text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
+                      >
+                        <option value="high_school">High School (K-12)</option>
+                        <option value="undergraduate">Undergraduate (Bachelors)</option>
+                        <option value="postgraduate">Postgraduate (Masters/PhD)</option>
+                        <option value="competitive_exam">Competitive Exam Aspirant</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-[#4B5563] dark:text-[#A8A8B3] block mb-1">
+                        Semester / Year
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.semester || ''}
+                        onChange={(e) => setProfileData({ ...profileData, semester: e.target.value })}
+                        placeholder="e.g. Semester 5"
+                        className="w-full p-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#19191F] text-xs text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-[#4B5563] dark:text-[#A8A8B3] block mb-1">
+                        Target GPA / Goal
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.targetGpa || ''}
+                        onChange={(e) => setProfileData({ ...profileData, targetGpa: e.target.value })}
+                        placeholder="e.g. 9.2 / 10 or 3.8 / 4.0"
+                        className="w-full p-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#19191F] text-xs text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Enrolled Coursework */}
+                <div className="p-4 rounded-2xl bg-stone-50 dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.08] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#111827] dark:text-[#F5F5F7] flex items-center gap-1.5">
+                      <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
+                      Enrolled Subjects & Modules
+                    </span>
+                    <span className="text-[10px] text-stone-500 font-mono">
+                      {(profileData.subjectsEnrolled || []).length} active
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {(profileData.subjectsEnrolled || []).map((subj) => (
+                      <span
+                        key={subj}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white dark:bg-[#19191F] border border-stone-200 dark:border-white/[0.08] text-xs font-medium text-stone-700 dark:text-stone-300 shadow-2xs"
+                      >
+                        <BookOpen className="w-3 h-3 text-indigo-500" />
+                        <span>{subj}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSubject(subj)}
+                          className="text-stone-400 hover:text-rose-500 transition-colors ml-0.5"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="text"
+                      value={newSubject}
+                      onChange={(e) => setNewSubject(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddSubject();
+                        }
+                      }}
+                      placeholder="Add subject (e.g. Operating Systems)..."
+                      className="flex-1 p-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#19191F] text-xs text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddSubject}
+                      className="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Add
+                    </button>
+                  </div>
+                </div>
+
+                {/* Upcoming Exams */}
+                <div className="p-4 rounded-2xl bg-stone-50 dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.08] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-[#111827] dark:text-[#F5F5F7] flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                        Upcoming Exams & Deadlines
+                      </div>
+                      <div className="text-[11px] text-stone-500">
+                        Milestones powering study plan prioritization and countdowns.
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowAddExam(!showAddExam)}
+                      className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-500/20 text-xs font-semibold flex items-center gap-1 hover:bg-indigo-100 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> {showAddExam ? 'Cancel' : 'Add Exam'}
+                    </button>
+                  </div>
+
+                  {showAddExam && (
+                    <div className="p-3 rounded-2xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-500/30 space-y-2.5 animate-in fade-in duration-150">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input
+                          type="text"
+                          value={newExamSubject}
+                          onChange={(e) => setNewExamSubject(e.target.value)}
+                          placeholder="Subject Name..."
+                          className="p-2 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-white dark:bg-[#19191F] text-xs"
+                        />
+                        <input
+                          type="date"
+                          value={newExamDate}
+                          onChange={(e) => setNewExamDate(e.target.value)}
+                          className="p-2 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-white dark:bg-[#19191F] text-xs font-mono"
+                        />
+                        <input
+                          type="number"
+                          min={50}
+                          max={100}
+                          value={newExamTarget}
+                          onChange={(e) => setNewExamTarget(e.target.value)}
+                          placeholder="Target Score %"
+                          className="p-2 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-white dark:bg-[#19191F] text-xs font-mono"
+                        />
+                      </div>
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={handleAddExam}
+                          className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs"
+                        >
+                          Save Exam Target
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    {(profileData.upcomingExams || profileData.targetExams || []).length === 0 ? (
+                      <div className="p-4 rounded-xl border border-dashed border-stone-200 dark:border-white/[0.08] text-center text-xs text-stone-500">
+                        No upcoming exams registered. Click "Add Exam" to track exam dates.
+                      </div>
+                    ) : (
+                      (profileData.upcomingExams || profileData.targetExams || []).map((exam) => (
+                        <div
+                          key={exam.id}
+                          className="p-2.5 rounded-xl bg-white dark:bg-[#19191F] border border-stone-200 dark:border-white/[0.08] flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono text-xs font-bold">
+                              {exam.daysLeft}d
+                            </span>
+                            <div>
+                              <div className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F7]">
+                                {exam.subject}
+                              </div>
+                              <div className="text-[10px] text-stone-500 font-mono">
+                                {exam.date} • Target: {exam.targetScore || 90}%
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveExam(exam.id)}
+                            className="p-1 rounded-lg text-stone-400 hover:text-rose-500 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Focus Areas & Strengths */}
+                <div className="grid grid-cols-1 gap-3.5">
+                  {/* Weak Topics */}
+                  <div className="p-4 rounded-2xl bg-rose-50/40 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-500/20 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-bold text-rose-900 dark:text-rose-200 flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+                        <span>Focus Areas Needing Practice</span>
+                      </div>
+                      <span className="text-[10px] text-rose-700 dark:text-rose-300 font-mono font-medium">
+                        {(profileData.weakTopics || []).length} focus areas
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {(profileData.weakTopics || []).map((topic) => (
+                        <span
+                          key={topic}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white dark:bg-[#19191F] border border-rose-200 dark:border-rose-500/30 text-xs font-medium text-rose-800 dark:text-rose-300 shadow-2xs"
+                        >
+                          <span>{topic}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveWeakTopic(topic)}
+                            className="text-stone-400 hover:text-rose-600 transition-colors ml-0.5"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="text"
+                        value={newWeakTopic}
+                        onChange={(e) => setNewWeakTopic(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddWeakTopic();
+                          }
+                        }}
+                        placeholder="Add weak topic (e.g. Dynamic Programming)..."
+                        className="flex-1 p-2 rounded-xl border border-rose-200 dark:border-rose-500/30 bg-white dark:bg-[#19191F] text-xs text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 outline-hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddWeakTopic}
+                        className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex items-center gap-1 transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Add
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Strong Topics */}
+                  <div className="p-4 rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-500/20 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Mastered Topics & Strengths</span>
+                      </div>
+                      <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-mono font-medium">
+                        {(profileData.strongTopics || []).length} mastered
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {(profileData.strongTopics || []).map((topic) => (
+                        <span
+                          key={topic}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white dark:bg-[#19191F] border border-emerald-200 dark:border-emerald-500/30 text-xs font-medium text-emerald-800 dark:text-emerald-300 shadow-2xs"
+                        >
+                          <span>{topic}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveStrongTopic(topic)}
+                            className="text-stone-400 hover:text-emerald-600 transition-colors ml-0.5"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="text"
+                        value={newStrongTopic}
+                        onChange={(e) => setNewStrongTopic(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddStrongTopic();
+                          }
+                        }}
+                        placeholder="Add strength (e.g. Graph Traversal)..."
+                        className="flex-1 p-2 rounded-xl border border-emerald-200 dark:border-emerald-500/30 bg-white dark:bg-[#19191F] text-xs text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddStrongTopic}
+                        className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1 transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Add
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* TAB 1: ACADEMIC & GOALS */}
             {activeTab === 'academic' && (
               <div className="space-y-5 animate-in fade-in duration-150">
@@ -955,7 +1546,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               ) : (
                 <>
                   <Check className="w-4 h-4" />
-                  <span>Save Settings</span>
+                  <span>Save Changes</span>
                 </>
               )}
             </button>

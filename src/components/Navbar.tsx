@@ -4,8 +4,7 @@ import {
   Bell,
   Maximize2,
   ChevronRight,
-  Menu,
-  Settings
+  Menu
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { CognoraLogo } from './CognoraLogo';
@@ -126,15 +125,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           <span className="hidden md:inline">Streak</span>
         </div>
 
-        {/* Focus Mode Shortcut */}
+        {/* Compact, Modern Focus Button */}
         {onEnterFocusMode && (
           <button
             onClick={onEnterFocusMode}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#4B5563] dark:text-[#A8A8B3] hover:text-[#4F46E5] dark:hover:text-[#818CF8] hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] border border-[#E2E4E9] dark:border-white/[0.08] transition-colors"
+            className="group relative hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 dark:bg-indigo-500/15 dark:hover:bg-indigo-500/25 border border-indigo-500/20 dark:border-indigo-400/25 hover:border-indigo-500/40 shadow-2xs hover:shadow-indigo-500/10 transition-all duration-200 active:scale-95"
             title="Enter Distraction-Free Focus Mode"
           >
-            <Maximize2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span>Focus Mode</span>
+            <Maximize2 className="w-3 h-3 text-indigo-500 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-200" />
+            <span>Focus</span>
           </button>
         )}
 
@@ -160,24 +159,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </button>
 
-        {/* Settings Button */}
-        {onOpenSettings && (
-          <button
-            onClick={onOpenSettings}
-            className="hidden sm:flex p-1.5 rounded-lg text-[#4B5563] hover:text-[#111827] dark:text-[#A8A8B3] dark:hover:text-white hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] transition-colors"
-            title="Settings & Study Hub"
-            aria-label="Open Settings"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
-        )}
-
-        {/* User Profile Avatar */}
+        {/* User Profile Avatar (Read-Only Profile Viewer trigger) */}
         <button
           onClick={onOpenProfile}
-          className={`w-7 h-7 rounded-lg bg-gradient-to-tr ${user.avatarColor || 'from-indigo-600 to-violet-500'} text-white flex items-center justify-center font-bold text-xs shadow-2xs hover:ring-2 hover:ring-indigo-500/30 transition-all shrink-0`}
-          title={`Profile: ${user.name}`}
-          aria-label="Open Profile"
+          className={`w-7 h-7 rounded-full bg-gradient-to-tr ${user.avatarColor || 'from-indigo-600 to-violet-500'} text-white flex items-center justify-center font-bold text-[11px] shadow-2xs hover:ring-2 hover:ring-indigo-500/40 hover:scale-105 active:scale-95 transition-all shrink-0`}
+          title={`Profile: ${user.name} (View info)`}
+          aria-label="View Student Profile"
         >
           {user.name.slice(0, 2).toUpperCase()}
         </button>

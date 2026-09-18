@@ -68,6 +68,7 @@ export default function App() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<'profile' | 'academic' | 'ai' | 'notifications' | 'data'>('profile');
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
@@ -676,7 +677,7 @@ export default function App() {
         onMaterialCreated={handleProcessedUpload}
       />
 
-      {/* Upgraded Student Profile Modal */}
+      {/* Upgraded Student Profile Modal (Read-Only) */}
       <ProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
@@ -687,6 +688,7 @@ export default function App() {
         }}
         onOpenSettings={() => {
           setIsProfileOpen(false);
+          setSettingsTab('profile');
           setIsSettingsOpen(true);
         }}
       />
@@ -703,6 +705,12 @@ export default function App() {
             setThemePreference(updated.themePreference);
           }
         }}
+        user={user}
+        onSaveUser={(updated) => {
+          setUser(updated);
+          saveUserProfile(updated);
+        }}
+        initialTab={settingsTab}
         themePreference={themePreference}
         resolvedTheme={resolvedTheme}
         onSelectThemePreference={setThemePreference}
