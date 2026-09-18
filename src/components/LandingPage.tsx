@@ -16,10 +16,8 @@ import {
   BarChart3,
   Bookmark,
   ChevronRight,
-  GraduationCap,
   Menu,
   X,
-  Compass,
   Check,
   Award,
   Search,
@@ -112,63 +110,6 @@ const DEMO_PREVIEWS: Record<string, {
   }
 };
 
-const EDUCATION_TIERS_LANDING = [
-  {
-    tier: 'Minor & Middle School',
-    level: 'Grades 1-8',
-    icon: '🎒',
-    accent: 'border-amber-500/30 text-amber-300 bg-amber-500/10',
-    title: 'Intuitive Foundations & Science',
-    desc: 'Uses beginner-friendly ELI10 metaphors, real-world analogies, step-by-step arithmetic explanations, and visual cards to make core subjects easy and fun.',
-    subjects: ['General Science', 'Mathematics & Fractions', 'Social Studies', 'Grammar']
-  },
-  {
-    tier: 'High School & Boards',
-    level: 'Grades 9-12',
-    icon: '🏫',
-    accent: 'border-blue-500/30 text-blue-300 bg-blue-500/10',
-    title: 'Board Exam Mastery & STEM',
-    desc: 'Bridges school curricula to board excellence with high-yield 2/5/10-mark questions, numerical derivations, formula sheets, and practice drills.',
-    subjects: ['Physics (Mechanics)', 'Chemistry (Organic)', 'Calculus & Algebra', 'Biology']
-  },
-  {
-    tier: 'Undergraduate (UG / College)',
-    level: 'Bachelors Degree',
-    icon: '🎓',
-    accent: 'border-indigo-500/30 text-indigo-300 bg-indigo-500/10',
-    title: 'University Semester Excellence',
-    desc: 'Built for Engineering (B.Tech), Medicine (MBBS), Commerce (B.Com/BBA), Science, and Law with syllabus breakdown and past-paper patterns.',
-    subjects: ['Data Structures & DBMS', 'Micro & Macroeconomics', 'Biochemistry', 'Business Law']
-  },
-  {
-    tier: 'Postgraduate (PG / Masters)',
-    level: 'Masters & Doctorate',
-    icon: '🏛️',
-    accent: 'border-purple-500/30 text-purple-300 bg-purple-500/10',
-    title: 'Research & Advanced Theory',
-    desc: 'Tailored for rigorous academic papers, complex mathematical proofs, case analysis, dissertation review, and graduate seminar synthesis.',
-    subjects: ['Distributed Systems & AI', 'Financial Econometrics', 'Constitutional Law', 'Genomics']
-  },
-  {
-    tier: 'Competitive Exam Aspirants',
-    level: 'JEE • NEET • UPSC • SAT • GRE',
-    icon: '🎯',
-    accent: 'border-rose-500/30 text-rose-300 bg-rose-500/10',
-    title: 'Speed, Accuracy & High-Yield Recall',
-    desc: 'Timed mock test simulations, negative marking calculators, speed-accuracy diagnostics, formula recall sheets, and rapid doubt clearance.',
-    subjects: ['JEE Advanced Math', 'NEET Biology Drills', 'UPSC Polity & Civics', 'GRE Quantitative']
-  },
-  {
-    tier: 'Professional & Lifelong',
-    level: 'Certifications & Upskilling',
-    icon: '💼',
-    accent: 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10',
-    title: 'Practical Execution & Frameworks',
-    desc: 'Fast-track technical upskilling, case study breakdowns, industry certification prep (AWS, PMP, CFA, Bar exams), and hands-on problem sets.',
-    subjects: ['System Architecture', 'Corporate Finance', 'Regulatory Compliance', 'Executive Prep']
-  }
-];
-
 export const LandingPage: React.FC<LandingPageProps> = ({
   onStartStudying,
   currentUser,
@@ -217,7 +158,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex items-center gap-3">
             <CognoraLogo
               size="md"
-              subtitle="Universal AI Study Suite"
+              showSubtitle={false}
               theme="dark"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             />
@@ -225,13 +166,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-stone-300">
-            <button
-              onClick={() => scrollToSection('education-tiers')}
-              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
-            >
-              <span>All Educations</span>
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300">New</span>
-            </button>
             <button
               onClick={() => scrollToSection('how-it-works')}
               className="hover:text-white transition-colors cursor-pointer"
@@ -291,13 +225,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {mobileMenuOpen && (
           <div className="md:hidden border-b border-white/[0.08] bg-[#0C0E15] px-6 py-5 space-y-4 animate-in slide-in-from-top-4 duration-200">
             <div className="flex flex-col space-y-3 text-sm font-medium text-stone-300">
-              <button
-                onClick={() => scrollToSection('education-tiers')}
-                className="text-left py-1 hover:text-white cursor-pointer flex items-center justify-between"
-              >
-                <span>All Educations & Grades</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono">K-12 to PG</span>
-              </button>
               <button
                 onClick={() => scrollToSection('how-it-works')}
                 className="text-left py-1 hover:text-white cursor-pointer"
@@ -554,73 +481,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          4. ALL EDUCATIONS & GRADES SECTION
-          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <section id="education-tiers" className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full border-t border-white/[0.08]">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest block mb-2 font-mono">
-            UNIVERSAL ACADEMIC COVERAGE
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-extrabold font-heading text-white tracking-tight">
-            Built for Every Education Tier &amp; Subject
-          </h2>
-          <p className="mt-3 text-sm sm:text-base text-stone-300">
-            Cognora dynamically tunes its pedagogy, explanation depth, question formats, and formula indexing to match your academic level.
-          </p>
-        </div>
-
-        {/* 6 Education Tiers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {EDUCATION_TIERS_LANDING.map((tier) => (
-            <div
-              key={tier.tier}
-              className="p-6 rounded-2xl bg-gradient-to-b from-[#131622] to-[#0D0F18] border border-white/[0.08] hover:border-indigo-400/40 shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl p-2 rounded-xl bg-white/5 border border-white/10 inline-block shadow-xs">
-                    {tier.icon}
-                  </span>
-                  <span className={`text-[10px] font-bold font-mono px-2.5 py-0.5 rounded-full border ${tier.accent}`}>
-                    {tier.level}
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="font-heading font-bold text-lg text-white group-hover:text-indigo-300 transition-colors">
-                    {tier.tier}
-                  </h3>
-                  <div className="text-xs text-indigo-400/90 font-medium mt-0.5">
-                    {tier.title}
-                  </div>
-                </div>
-
-                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-                  {tier.desc}
-                </p>
-              </div>
-
-              {/* Sample subjects enrolled */}
-              <div className="mt-5 pt-3.5 border-t border-white/[0.06] space-y-1.5">
-                <div className="text-[10px] font-mono text-stone-400 uppercase font-semibold">Example Modules:</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {tier.subjects.map((s) => (
-                    <span
-                      key={s}
-                      className="px-2 py-0.5 rounded-md bg-white/5 text-[10px] text-stone-300 border border-white/[0.06]"
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          5. CONNECTED 3-STEP WORKFLOW
+          4. CONNECTED 3-STEP WORKFLOW
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <section id="how-it-works" className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full border-t border-white/[0.08]">
         <div className="text-center max-w-3xl mx-auto mb-16">
@@ -1045,11 +906,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 Platform
               </h4>
               <ul className="space-y-2.5 text-xs">
-                <li>
-                  <button onClick={() => scrollToSection('education-tiers')} className="text-stone-400 hover:text-white transition-colors cursor-pointer text-left">
-                    All Educations (K-12 to PG)
-                  </button>
-                </li>
                 <li>
                   <button onClick={() => scrollToSection('how-it-works')} className="text-stone-400 hover:text-white transition-colors cursor-pointer text-left">
                     How It Works
