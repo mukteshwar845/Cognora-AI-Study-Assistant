@@ -437,6 +437,10 @@ export default function App() {
                 }}
                 onTogglePlanSession={handleTogglePlanSession}
                 onOpenSettings={() => setIsSettingsOpen(true)}
+                onUpdateUser={(updated) => {
+                  setUser(updated);
+                  saveUserProfile(updated);
+                }}
               />
             )}
 

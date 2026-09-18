@@ -40,10 +40,12 @@ const AVATAR_ICONS: Record<string, React.ComponentType<{ className?: string }>> 
 };
 
 const ACADEMIC_LEVEL_LABELS: Record<string, string> = {
-  high_school: 'High School',
-  undergraduate: 'Undergraduate',
-  postgraduate: 'Postgraduate',
-  competitive_exam: 'Competitive Aspirant',
+  minor_school: '🎒 Minor / Middle School (Grades 1-8)',
+  high_school: '🏫 High School (Grades 9-12)',
+  undergraduate: '🎓 Undergraduate (UG)',
+  postgraduate: '🏛️ Postgraduate (PG)',
+  competitive_exam: '🎯 Competitive Aspirant',
+  professional_learner: '💼 Professional Learner',
 };
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({

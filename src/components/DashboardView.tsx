@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   UserProfile,
   StudyMaterial,
   StudyPlanSession,
-  AppSettings
+  AppSettings,
+  SubjectDiscipline,
+  AcademicLevel
 } from '../types';
 import {
   UploadCloud,
@@ -22,8 +24,20 @@ import {
   Layers,
   FileText,
   ArrowUpRight,
-  Settings
+  Settings,
+  GraduationCap,
+  X,
+  Compass,
+  BookmarkCheck,
+  HelpCircle,
+  Calculator
 } from 'lucide-react';
+import {
+  EDUCATION_TIERS,
+  SUBJECT_DISCIPLINES,
+  ACADEMIC_TRACK_PRESETS,
+  AcademicTrackPreset
+} from '../data/academicTracks';
 
 interface DashboardViewProps {
   user: UserProfile;
@@ -36,6 +50,7 @@ interface DashboardViewProps {
   onNavigateTab: (tabId: string) => void;
   onTogglePlanSession: (id: string) => void;
   onOpenSettings?: () => void;
+  onUpdateUser?: (updated: UserProfile) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -48,16 +63,36 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onStartExam,
   onNavigateTab,
   onTogglePlanSession,
-  onOpenSettings
+  onOpenSettings,
+  onUpdateUser
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
-  const primaryMaterial = materials[0];
+  const [selectedDiscipline, setSelectedDiscipline] = useState<SubjectDiscipline>('all');
+  const [showTrackModal, setShowTrackModal] = useState(false);
+  const [trackSwitchMessage, setTrackSwitchMessage] = useState<string | null>(null);
+
+  // Filter materials by selected discipline if any
+  const filteredMaterials = useMemo(() => {
+    if (selectedDiscipline === 'all') return materials;
+    const disciplineObj = SUBJECT_DISCIPLINES.find((d) => d.id === selectedDiscipline);
+    if (!disciplineObj || disciplineObj.subjects.length === 0) return materials;
+
+    const matched = materials.filter((m) =>
+      disciplineObj.subjects.some((sub) =>
+        m.subject.toLowerCase().includes(sub.toLowerCase()) ||
+        m.title.toLowerCase().includes(sub.toLowerCase())
+      )
+    );
+    return matched.length > 0 ? matched : materials;
+  }, [materials, selectedDiscipline]);
+
+  const primaryMaterial = filteredMaterials[0] || materials[0];
   const upcomingExams = user.upcomingExams || user.targetExams || [];
   const primaryExam = upcomingExams[0];
 
-  // Dynamic daily study target derived from settings
-  const targetMinutes = settings?.dailyStudyGoalMinutes || 180;
-  const studiedMinutes = Math.min(targetMinutes, Math.round(targetMinutes * 0.75));
+  // Dynamic study goal calculation
+  const targetMinutes = settings?.dailyStudyGoalMinutes || 120;
+  const studiedMinutes = Math.min(targetMinutes, Math.round(targetMinutes * 0.72));
   const progressPercent = Math.min(100, Math.round((studiedMinutes / targetMinutes) * 100));
 
   const formatMins = (mins: number) => {
@@ -66,10 +101,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     if (h === 0) return `${m}m`;
     return m > 0 ? `${h}h ${m}m` : `${h}h`;
   };
+
   const studiedFormatted = formatMins(studiedMinutes);
   const targetFormatted = formatMins(targetMinutes);
 
-  // Derive time-of-day greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -77,7 +112,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return 'Good evening';
   };
 
-  // Drag and drop handlers for upload banner
+  // Drag & drop handlers
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
@@ -92,7 +127,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     onOpenUpload();
   };
 
-  // If no materials uploaded yet, show refined empty state
+  // Handle switching academic track preset
+  const handleSelectTrack = (preset: AcademicTrackPreset) => {
+    if (onUpdateUser) {
+      const updatedUser: UserProfile = {
+        ...user,
+        academicLevel: preset.tier,
+        degree: preset.degreeLabel,
+        institution: preset.institutionExample,
+        bio: preset.motto,
+        subjectsEnrolled: preset.subjects,
+        weakTopics: preset.sampleTopics.weak,
+        strongTopics: preset.sampleTopics.strong
+      };
+      onUpdateUser(updatedUser);
+      setTrackSwitchMessage(`Switched to "${preset.name}"! Subjects & study goals adapted.`);
+      setTimeout(() => setTrackSwitchMessage(null), 3500);
+    }
+    setShowTrackModal(false);
+  };
+
+  const currentTierInfo = EDUCATION_TIERS[user.academicLevel || 'undergraduate'] || EDUCATION_TIERS.undergraduate;
+
+  // Empty state if library has 0 documents
   if (!materials || materials.length === 0) {
     return (
       <div className="space-y-6 max-w-5xl mx-auto py-8">
@@ -102,10 +159,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="space-y-2 max-w-md mx-auto">
             <h2 className="font-heading font-bold text-2xl text-[#111827] dark:text-[#F5F5F7]">
-              Your study library is empty
+              Your study workspace is ready
             </h2>
             <p className="text-sm text-[#4B5563] dark:text-[#A8A8B3] leading-relaxed">
-              Upload your first PDF, lecture notes, or syllabus, and let AI transform it into notes, interactive quizzes, active-recall flashcards, and a revision plan.
+              Upload notes or textbooks from any education level (Minor School, High School, UG, PG, Competitive) across any subject.
             </p>
           </div>
           <div>
@@ -114,7 +171,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white text-sm font-semibold shadow-xs hover:shadow-indigo-500/25 transition-all active:scale-95 inline-flex items-center gap-2"
             >
               <UploadCloud className="w-4 h-4" />
-              Upload Study Material
+              Upload First Study Material
             </button>
           </div>
         </div>
@@ -124,32 +181,78 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
+      {/* Toast Alert when track switched */}
+      {trackSwitchMessage && (
+        <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center justify-between shadow-xs animate-in slide-in-from-top-3 duration-200">
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+            <span>{trackSwitchMessage}</span>
+          </div>
+          <button
+            onClick={() => setTrackSwitchMessage(null)}
+            className="text-emerald-600 hover:text-emerald-800 dark:hover:text-emerald-200 p-1"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          1. WELCOME HERO ("Today" Section)
-          Day: Fresh, academic, clean, subtle violet tint
-          Night: Deep charcoal, low-glare, calm
+          1. UNIVERSAL EDUCATION & LEVEL HUB BANNER
+          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <div className="px-4 py-2.5 rounded-2xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400 font-mono flex items-center gap-1">
+            <GraduationCap className="w-3.5 h-3.5 text-indigo-500" />
+            Active Education Tier:
+          </span>
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-500/30">
+            {currentTierInfo.badge}
+          </span>
+          <span className="text-xs text-stone-600 dark:text-stone-300 font-medium hidden md:inline">
+            {user.degree || currentTierInfo.gradeRange}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowTrackModal(true)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-500/30 transition-all active:scale-95 shadow-2xs"
+        >
+          <Compass className="w-3.5 h-3.5" />
+          <span>Switch Education Track / Level</span>
+        </button>
+      </div>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          2. WELCOME HERO ("Today" Section)
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-indigo-50/90 via-white to-violet-50/50 dark:bg-gradient-to-r dark:from-[#131318] dark:via-[#19191F] dark:to-[#131318] border border-indigo-100/90 dark:border-white/[0.08] text-[#111827] dark:text-[#F5F5F7] shadow-xs relative overflow-hidden transition-colors duration-200">
-        {/* Subtle background glow */}
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-600/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          {/* Left: Greeting, streak info & actions */}
           <div className="space-y-3 max-w-xl">
             <div>
               <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#111827] dark:text-[#F5F5F7] tracking-tight">
                 {getGreeting()}, {user.name} 👋
               </h1>
               <p className="text-xs sm:text-sm text-[#4B5563] dark:text-[#A8A8B3] mt-1 leading-relaxed">
-                You're on a <span className="text-amber-600 dark:text-amber-400 font-semibold">{user.streakDays}-day study streak</span>. Your {primaryExam?.subject || 'Data Structures & Algorithms'} exam is{' '}
-                <span className="text-indigo-600 dark:text-indigo-300 font-semibold">{primaryExam?.daysLeft ?? 12} days away</span>.
+                You're on a <span className="text-amber-600 dark:text-amber-400 font-semibold">{user.streakDays}-day study streak</span>.
+                {primaryExam ? (
+                  <>
+                    {' '}Your <span className="font-semibold text-indigo-600 dark:text-indigo-300">{primaryExam.subject}</span> milestone is{' '}
+                    <span className="text-indigo-600 dark:text-indigo-300 font-semibold">{primaryExam.daysLeft} days away</span>.
+                  </>
+                ) : (
+                  ' Ready to dive into active recall notes, formula sheets, and interactive quizzes.'
+                )}
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1 w-full sm:w-auto">
               <button
                 onClick={() => onOpenMaterial(primaryMaterial)}
-                className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white shadow-xs transition-all flex items-center justify-center gap-1.5 active-press"
+                className="w-full sm:w-auto min-h-[42px] px-4 py-2.5 rounded-xl text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-95"
               >
                 <span>Continue Studying</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -157,7 +260,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
               <button
                 onClick={() => onStartExam(primaryMaterial)}
-                className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-semibold bg-white dark:bg-white/[0.08] hover:bg-[#F1F3F8] dark:hover:bg-white/[0.14] text-[#111827] dark:text-stone-200 border border-[#E2E4E9] dark:border-white/[0.1] transition-all flex items-center justify-center gap-1.5 active-press shadow-2xs"
+                className="w-full sm:w-auto min-h-[42px] px-4 py-2.5 rounded-xl text-xs font-semibold bg-white dark:bg-white/[0.08] hover:bg-[#F1F3F8] dark:hover:bg-white/[0.14] text-[#111827] dark:text-stone-200 border border-[#E2E4E9] dark:border-white/[0.1] transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-2xs"
               >
                 <Zap className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                 <span>Take Timed Exam</span>
@@ -170,12 +273,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-1.5">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-[#8E95A5] dark:text-[#70707B] font-mono">
-                  TODAY'S PROGRESS
+                  TODAY'S TARGET
                 </span>
                 {onOpenSettings && (
                   <button
                     onClick={onOpenSettings}
-                    title="Change daily goal in Settings"
+                    title="Change study target in Settings"
                     className="p-0.5 text-stone-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                   >
                     <Settings className="w-3 h-3" />
@@ -185,7 +288,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs">{progressPercent}%</span>
             </div>
 
-            {/* Visual Progress Bar */}
             <div className="w-full h-2 rounded-full bg-stone-200 dark:bg-white/[0.08] overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-emerald-500 dark:to-emerald-400 transition-all duration-500"
@@ -196,7 +298,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex items-center justify-between text-xs text-[#4B5563] dark:text-[#A8A8B3]">
               <span className="text-[#8E95A5] dark:text-[#70707B]">Time studied:</span>
               <span className="font-mono font-medium">
-                {studiedFormatted} / {targetFormatted} target
+                {studiedFormatted} / {targetFormatted}
               </span>
             </div>
           </div>
@@ -204,55 +306,92 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          2. PRIMARY ACTIONS: WHAT TO DO NEXT & UPLOAD
+          3. UNIVERSAL SUBJECT DISCIPLINE FILTER BAR
+          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#8E95A5] dark:text-[#70707B] font-mono flex items-center gap-1.5">
+            <BookmarkCheck className="w-3.5 h-3.5 text-indigo-500" />
+            Explore Subject Disciplines
+          </span>
+          <span className="text-[11px] text-stone-400">Universal for all students</span>
+        </div>
+
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar touch-scroll">
+          {SUBJECT_DISCIPLINES.map((d) => {
+            const isSelected = selectedDiscipline === d.id;
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => setSelectedDiscipline(d.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all shrink-0 ${
+                  isSelected
+                    ? 'bg-indigo-600 text-white font-semibold shadow-xs ring-2 ring-indigo-500/30'
+                    : 'bg-white dark:bg-[#131318] text-[#4B5563] dark:text-[#A8A8B3] border border-[#E2E4E9] dark:border-white/[0.08] hover:border-indigo-300'
+                }`}
+              >
+                <span>{d.icon}</span>
+                <span>{d.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          4. PRIMARY ACTIONS: WHAT TO DO NEXT & UPLOAD
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Dominant "Continue Where You Left Off" Card (7 cols) */}
+        {/* Continue Where You Left Off Card */}
         <div className="lg:col-span-7 p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] shadow-xs flex flex-col justify-between space-y-4">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] dark:text-[#818CF8] font-mono">
-                  CONTINUE WHERE YOU LEFT OFF
-                </span>
-              </div>
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] dark:text-[#818CF8] font-mono">
+                ACTIVE STUDY TOPIC
+              </span>
               <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 font-mono">
-                82% Ready
+                {primaryMaterial.subject}
               </span>
             </div>
 
             <div>
-              <h2 className="font-heading font-bold text-lg sm:text-xl text-[#111827] dark:text-[#F5F5F7] flex items-center gap-2">
-                <span>{primaryMaterial.title}</span>
+              <h2 className="font-heading font-bold text-lg sm:text-xl text-[#111827] dark:text-[#F5F5F7]">
+                {primaryMaterial.title}
               </h2>
-              <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3] mt-1 line-clamp-1">
-                {primaryMaterial.summary?.tldr || 'Arrays • Linked Lists • Stacks • Queues • Search & Sort Algorithms'}
+              <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3] mt-1 line-clamp-2 leading-relaxed">
+                {primaryMaterial.summary?.tldr || primaryMaterial.chapter}
               </p>
             </div>
 
-            {/* Key topics badges */}
+            {/* Key topics badges from actual material */}
             <div className="flex flex-wrap gap-1.5 pt-0.5">
-              {['Arrays', 'Linked Lists', 'Stacks', 'Queues'].map((topic) => (
-                <span
-                  key={topic}
-                  className="px-2.5 py-1 rounded-lg text-xs bg-[#F1F3F8] dark:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3] font-medium border border-[#E2E4E9]/60 dark:border-white/[0.04]"
-                >
-                  {topic}
-                </span>
-              ))}
+              {((primaryMaterial.summary?.importantTopics?.map((t) => t.topic)) || [
+                primaryMaterial.subject,
+                primaryMaterial.chapter
+              ])
+                .slice(0, 4)
+                .map((topic) => (
+                  <span
+                    key={topic}
+                    className="px-2.5 py-1 rounded-lg text-xs bg-[#F1F3F8] dark:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3] font-medium border border-[#E2E4E9]/60 dark:border-white/[0.04]"
+                  >
+                    {topic}
+                  </span>
+                ))}
             </div>
 
-            {/* Progress Bar & Timestamp */}
+            {/* Visual Progress */}
             <div className="space-y-1.5 pt-1">
               <div className="w-full h-2 rounded-full bg-[#E2E4E9] dark:bg-[#202027] overflow-hidden">
                 <div
                   className="h-full rounded-full bg-[#4F46E5] dark:bg-[#6366F1] transition-all duration-300"
-                  style={{ width: '82%' }}
+                  style={{ width: '80%' }}
                 />
               </div>
               <div className="flex items-center justify-between text-[11px] text-[#8E95A5] dark:text-[#70707B]">
-                <span>Last studied: Today, 7:32 PM</span>
-                <span className="font-mono">Chapter 1 of 4</span>
+                <span>Topic: {primaryMaterial.chapter}</span>
+                <span className="font-mono">Page count: {primaryMaterial.pageCount || 24}</span>
               </div>
             </div>
           </div>
@@ -267,30 +406,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
 
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-2 text-xs flex-wrap">
               <button
                 onClick={() => onNavigateTab('workspace')}
                 className="text-[#4B5563] hover:text-[#111827] dark:text-[#A8A8B3] dark:hover:text-[#F5F5F7] px-2 py-1 rounded-lg hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] transition-colors"
               >
-                View Notes
+                Summaries & Notes
               </button>
               <button
-                onClick={() => onStartExam(primaryMaterial)}
+                onClick={() => onNavigateTab('formulas')}
                 className="text-[#4B5563] hover:text-[#111827] dark:text-[#A8A8B3] dark:hover:text-[#F5F5F7] px-2 py-1 rounded-lg hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] transition-colors"
               >
-                Timed Exam
+                Formulas & Rules
               </button>
               <button
                 onClick={() => onNavigateTab('ask_ai')}
                 className="text-[#4F46E5] dark:text-[#818CF8] hover:underline px-2 py-1 font-medium"
               >
-                Ask AI Tutor →
+                Ask AI Doubt →
               </button>
             </div>
           </div>
         </div>
 
-        {/* Compact Upload Material Area (5 cols) */}
+        {/* Compact Upload Material Area */}
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -309,13 +448,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             <div>
               <h3 className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F7] flex items-center gap-1.5">
-                <span>＋ Upload study material</span>
+                <span>＋ Upload any study material</span>
               </h3>
               <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3] mt-1 leading-relaxed">
-                PDF • DOCX • PPTX • Images
+                PDF • Word (DOCX) • PowerPoint • Images • Text
               </p>
               <p className="text-xs text-[#8E95A5] dark:text-[#70707B] mt-1">
-                Let AI create notes, quizzes & flashcards automatically.
+                For School, High School, College, Competitive, and Professional exams.
               </p>
             </div>
           </div>
@@ -333,45 +472,53 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          3. QUICK ACTIONS ROW
+          5. UNIVERSAL QUICK ACTIONS ROW
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div>
         <div className="flex items-center justify-between mb-2.5 px-1">
           <span className="text-xs font-bold uppercase tracking-wider text-[#8E95A5] dark:text-[#70707B] font-mono">
-            QUICK ACTIONS
+            CORE STUDY ENGINES
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {[
             {
               id: 'ask_ai',
-              title: 'Ask AI',
-              subtitle: 'Solve doubts instantly',
+              title: 'AI Tutor',
+              subtitle: 'Clear any doubt',
               icon: Sparkles,
               color: 'text-indigo-600 bg-indigo-50 dark:text-indigo-400 dark:bg-indigo-500/10',
               action: () => onNavigateTab('ask_ai')
             },
             {
               id: 'quizzes',
-              title: 'Generate Quiz',
-              subtitle: 'Active recall practice',
+              title: 'Quiz Generator',
+              subtitle: 'Active recall drills',
               icon: FileText,
               color: 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10',
               action: () => onNavigateTab('quizzes')
             },
             {
+              id: 'formulas',
+              title: 'Formula & Rules',
+              subtitle: 'Formulas & laws hub',
+              icon: Calculator,
+              color: 'text-cyan-600 bg-cyan-50 dark:text-cyan-400 dark:bg-cyan-500/10',
+              action: () => onNavigateTab('formulas')
+            },
+            {
               id: 'flashcards',
               title: 'Flashcards',
-              subtitle: 'Review key terms',
+              subtitle: 'Spaced repetition',
               icon: Layers,
               color: 'text-violet-600 bg-violet-50 dark:text-violet-400 dark:bg-violet-500/10',
               action: () => onNavigateTab('flashcards')
             },
             {
               id: 'exams',
-              title: 'Start Exam',
-              subtitle: 'Timed simulation',
+              title: 'Timed Exam',
+              subtitle: 'Exam simulation',
               icon: Clock,
               color: 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-500/10',
               action: () => (primaryMaterial ? onStartExam(primaryMaterial) : onNavigateTab('exams'))
@@ -403,10 +550,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          4. STATISTICS CARDS
+          6. STATISTICS CARDS
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {/* Stat 1: Study Materials */}
         <div
           onClick={() => onNavigateTab('library')}
           className="p-4 rounded-xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/[0.14] transition-colors cursor-pointer shadow-2xs space-y-1.5"
@@ -416,14 +562,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
           </div>
           <div className="font-heading font-extrabold text-2xl sm:text-3xl text-[#111827] dark:text-[#F5F5F7]">
-            {user.totalMaterialsUploaded ?? materials.length}
+            {materials.length}
           </div>
           <div className="text-[11px] text-[#8E95A5] dark:text-[#70707B] truncate">
-            12 active chapters
+            Across {user.subjectsEnrolled?.length || 5} subjects
           </div>
         </div>
 
-        {/* Stat 2: Study Streak */}
         <div
           onClick={() => onNavigateTab('analytics')}
           className="p-4 rounded-xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/[0.14] transition-colors cursor-pointer shadow-2xs space-y-1.5"
@@ -436,57 +581,55 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {user.streakDays} days
           </div>
           <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-            Active streak
+            Active streak 🔥
           </div>
         </div>
 
-        {/* Stat 3: Study Time */}
         <div
           onClick={() => onNavigateTab('analytics')}
           className="p-4 rounded-xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/[0.14] transition-colors cursor-pointer shadow-2xs space-y-1.5"
         >
           <div className="flex items-center justify-between text-xs text-[#8E95A5] dark:text-[#70707B] font-mono">
-            <span>Study Time</span>
+            <span>Weekly Study Time</span>
             <Clock className="w-3.5 h-3.5 text-violet-500" />
           </div>
           <div className="font-heading font-extrabold text-2xl sm:text-3xl text-[#111827] dark:text-[#F5F5F7]">
-            {user.weeklyHoursSpent ? `${Math.floor(user.weeklyHoursSpent)}h ${Math.round((user.weeklyHoursSpent % 1) * 60) || 35}m` : '12h 35m'}
+            {user.weeklyHoursSpent ? `${Math.floor(user.weeklyHoursSpent)}h` : '12h'}
           </div>
           <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" /> +18% this week
+            <TrendingUp className="w-3 h-3" /> Target: {settings?.weeklyStudyGoalHours || 15}h/week
           </div>
         </div>
 
-        {/* Stat 4: Quiz Accuracy */}
         <div
           onClick={() => onNavigateTab('quizzes')}
           className="p-4 rounded-xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/[0.14] transition-colors cursor-pointer shadow-2xs space-y-1.5"
         >
           <div className="flex items-center justify-between text-xs text-[#8E95A5] dark:text-[#70707B] font-mono">
-            <span>Quiz Accuracy</span>
+            <span>Quiz Mastery</span>
             <Award className="w-3.5 h-3.5 text-emerald-500" />
           </div>
           <div className="font-heading font-extrabold text-2xl sm:text-3xl text-[#111827] dark:text-[#F5F5F7]">
             {user.averageQuizScore ?? 82}%
           </div>
           <div className="text-[11px] text-[#8E95A5] dark:text-[#70707B] truncate">
-            {user.questionsSolved ? `${user.questionsSolved} questions` : '142 questions'}
+            {user.questionsSolved ? `${user.questionsSolved} questions solved` : 'Active practice'}
           </div>
         </div>
       </div>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          5. PROGRESS DASHBOARD & TODAY'S PLAN
+          7. PROGRESS DASHBOARD & TODAY'S PLAN
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Learning Progress & Trend (7 cols) */}
+        {/* Learning Progress Trend */}
         <div className="lg:col-span-7 p-5 rounded-2xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-heading font-bold text-sm sm:text-base text-[#111827] dark:text-[#F5F5F7]">
-                Your Learning Progress
+                Your Learning & Accuracy Trend
               </h3>
-              <p className="text-xs text-[#8E95A5] dark:text-[#70707B]">Weekly study performance & accuracy trend</p>
+              <p className="text-xs text-[#8E95A5] dark:text-[#70707B]">Weekly study consistency & quiz retention</p>
             </div>
 
             <button
@@ -498,19 +641,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </button>
           </div>
 
-          {/* Clean Quiz Performance Minimal Line Chart */}
           <div className="p-4 rounded-xl bg-[#F7F8FC] dark:bg-[#19191F] border border-[#E2E4E9]/70 dark:border-white/[0.04] space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-mono text-[11px] uppercase tracking-wider text-[#8E95A5] dark:text-[#70707B]">
-                QUIZ PERFORMANCE TREND
+                PERFORMANCE TREND
               </span>
               <span className="font-mono font-bold text-[#4F46E5] dark:text-[#818CF8] text-xs">
-                Peak: 88% (Fri)
+                Peak: 88%
               </span>
             </div>
 
-            {/* SVG Trend line */}
-            <div className="h-28 w-full relative pt-2">
+            <div className="h-24 w-full relative pt-2">
               <svg className="w-full h-full overflow-visible" viewBox="0 0 350 80" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
@@ -518,85 +659,41 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
                   </linearGradient>
                 </defs>
-
-                {/* Grid lines */}
                 <line x1="0" y1="20" x2="350" y2="20" stroke="#E5E7EB" strokeDasharray="3 3" className="dark:stroke-white/[0.06]" strokeWidth="0.8" />
                 <line x1="0" y1="50" x2="350" y2="50" stroke="#E5E7EB" strokeDasharray="3 3" className="dark:stroke-white/[0.06]" strokeWidth="0.8" />
-
-                {/* Area under curve */}
-                <path
-                  d="M 10 55 Q 60 45, 115 40 T 175 30 T 235 15 T 295 25 T 340 22 L 340 80 L 10 80 Z"
-                  fill="url(#purpleGradient)"
-                />
-
-                {/* Smooth Curve */}
-                <path
-                  d="M 10 55 Q 60 45, 115 40 T 175 30 T 235 15 T 295 25 T 340 22"
-                  fill="none"
-                  stroke="#6366f1"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-
-                {/* Data Points */}
+                <path d="M 10 55 Q 60 45, 115 40 T 175 30 T 235 15 T 295 25 T 340 22 L 340 80 L 10 80 Z" fill="url(#purpleGradient)" />
+                <path d="M 10 55 Q 60 45, 115 40 T 175 30 T 235 15 T 295 25 T 340 22" fill="none" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round" />
                 {[
-                  { cx: 10, cy: 55, val: '68%' },
-                  { cx: 65, cy: 48, val: '72%' },
-                  { cx: 120, cy: 40, val: '75%' },
-                  { cx: 175, cy: 30, val: '80%' },
-                  { cx: 235, cy: 15, val: '88%' },
-                  { cx: 290, cy: 25, val: '84%' },
-                  { cx: 340, cy: 22, val: '82%' }
+                  { cx: 10, cy: 55 },
+                  { cx: 65, cy: 48 },
+                  { cx: 120, cy: 40 },
+                  { cx: 175, cy: 30 },
+                  { cx: 235, cy: 15 },
+                  { cx: 290, cy: 25 },
+                  { cx: 340, cy: 22 }
                 ].map((pt, i) => (
-                  <circle
-                    key={i}
-                    cx={pt.cx}
-                    cy={pt.cy}
-                    r={i === 6 ? 4 : 3}
-                    className={i === 6 ? 'fill-indigo-500 stroke-white dark:stroke-[#131318] stroke-2' : 'fill-indigo-400'}
-                  />
+                  <circle key={i} cx={pt.cx} cy={pt.cy} r={i === 6 ? 4 : 3} className={i === 6 ? 'fill-indigo-500 stroke-white dark:stroke-[#131318] stroke-2' : 'fill-indigo-400'} />
                 ))}
               </svg>
             </div>
 
-            {/* Day Labels */}
             <div className="flex justify-between text-[10px] text-[#8E95A5] dark:text-[#70707B] font-mono pt-1 px-1">
-              <span>Mon</span>
-              <span>Tue</span>
-              <span>Wed</span>
-              <span>Thu</span>
-              <span>Fri</span>
-              <span>Sat</span>
+              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
               <span className="font-bold text-[#4F46E5] dark:text-[#818CF8]">Sun (82%)</span>
             </div>
           </div>
 
-          {/* Weekly Streak Motivation */}
-          <div className="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-500/10 border border-amber-200/70 dark:border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div className="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-500/10 border border-amber-200/70 dark:border-amber-500/20 flex items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
               <Flame className="w-4 h-4 text-amber-500 fill-current shrink-0" />
               <span className="text-amber-900 dark:text-amber-300 font-medium">
-                Keep going — one session today keeps your streak alive!
+                Keep going — active recall today strengthens long-term memory.
               </span>
-            </div>
-            <div className="flex items-center justify-between sm:justify-end gap-1.5 w-full sm:w-auto font-mono text-[10px]">
-              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, idx) => (
-                <span
-                  key={idx}
-                  className={`w-6 h-6 sm:w-5 sm:h-5 rounded-md flex items-center justify-center font-bold ${
-                    idx < 6
-                      ? 'bg-amber-500 text-white shadow-2xs'
-                      : 'bg-stone-200 dark:bg-[#19191F] text-[#8E95A5] dark:text-[#70707B]'
-                  }`}
-                >
-                  {idx < 6 ? '✓' : d}
-                </span>
-              ))}
             </div>
           </div>
         </div>
 
-        {/* Today's Study Plan (5 cols) */}
+        {/* Today's Study Plan */}
         <div className="lg:col-span-5 p-5 rounded-2xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] shadow-xs flex flex-col justify-between space-y-3">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -604,7 +701,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <h3 className="font-heading font-bold text-sm sm:text-base text-[#111827] dark:text-[#F5F5F7]">
                   Today's Study Plan
                 </h3>
-                <p className="text-xs text-[#8E95A5] dark:text-[#70707B]">Recommended sequence for today</p>
+                <p className="text-xs text-[#8E95A5] dark:text-[#70707B]">Dynamic revision schedule</p>
               </div>
               <button
                 onClick={() => onNavigateTab('planner')}
@@ -614,84 +711,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </button>
             </div>
 
-            {/* Timeline List */}
             <div className="space-y-2 pt-1">
-              {[
-                {
-                  id: 'plan_1',
-                  subject: 'DSA — Arrays',
-                  status: 'completed',
-                  duration: '30 min',
-                  label: 'Completed'
-                },
-                {
-                  id: 'plan_2',
-                  subject: 'DSA — Linked Lists',
-                  status: 'current',
-                  duration: '45 min',
-                  label: 'Recommended next'
-                },
-                {
-                  id: 'plan_3',
-                  subject: 'DBMS — Transactions',
-                  status: 'upcoming',
-                  duration: '30 min',
-                  label: 'Scheduled'
-                },
-                {
-                  id: 'plan_4',
-                  subject: 'Flashcard Review',
-                  status: 'upcoming',
-                  duration: '15 min',
-                  label: 'Scheduled'
-                }
-              ].map((item) => {
-                const isCompleted = item.status === 'completed';
-                const isCurrent = item.status === 'current';
-
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => onTogglePlanSession(item.id)}
-                    className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between text-xs ${
-                      isCurrent
-                        ? 'bg-indigo-50/80 dark:bg-indigo-500/10 border-indigo-300 dark:border-indigo-500/40 shadow-xs'
-                        : isCompleted
-                        ? 'bg-[#F7F8FC] dark:bg-white/[0.02] border-[#E2E4E9]/60 dark:border-white/[0.04] text-[#8E95A5] dark:text-[#70707B]'
-                        : 'bg-white dark:bg-[#19191F] border-[#E2E4E9] dark:border-white/[0.06] hover:border-stone-300 text-[#4B5563] dark:text-[#A8A8B3]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      {isCompleted ? (
-                        <div className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                          <Check className="w-2.5 h-2.5 stroke-[3]" />
-                        </div>
-                      ) : isCurrent ? (
-                        <div className="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center shrink-0 text-[10px] font-bold">
-                          →
-                        </div>
-                      ) : (
-                        <Circle className="w-4 h-4 text-stone-300 dark:text-stone-600 shrink-0" />
-                      )}
-
-                      <div className="min-w-0">
-                        <div className={`font-semibold truncate ${isCompleted ? 'line-through text-[#8E95A5]' : 'text-[#111827] dark:text-[#F5F5F7]'}`}>
-                          {item.subject}
-                        </div>
-                        <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B] font-mono">
-                          {item.duration} &bull; {item.label}
-                        </div>
+              {studyPlan.slice(0, 4).map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => onTogglePlanSession(item.id)}
+                  className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between text-xs ${
+                    item.completed
+                      ? 'bg-[#F7F8FC] dark:bg-white/[0.02] border-[#E2E4E9]/60 dark:border-white/[0.04] text-[#8E95A5]'
+                      : 'bg-white dark:bg-[#19191F] border-[#E2E4E9] dark:border-white/[0.06] hover:border-stone-300 text-[#4B5563] dark:text-[#A8A8B3]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {item.completed ? (
+                      <div className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                        <Check className="w-2.5 h-2.5 stroke-[3]" />
+                      </div>
+                    ) : (
+                      <Circle className="w-4 h-4 text-stone-300 dark:text-stone-600 shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <div className={`font-semibold truncate ${item.completed ? 'line-through text-[#8E95A5]' : 'text-[#111827] dark:text-[#F5F5F7]'}`}>
+                        {item.subject}
+                      </div>
+                      <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B] font-mono">
+                        {item.time} &bull; {item.durationMinutes} min &bull; {item.taskType}
                       </div>
                     </div>
-
-                    {isCurrent && (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-600 text-white uppercase tracking-wider shrink-0 font-mono">
-                        Active
-                      </span>
-                    )}
                   </div>
-                );
-              })}
+
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-stone-100 dark:bg-white/[0.04]">
+                    {item.completed ? 'Done' : 'Pending'}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -700,61 +753,63 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               onClick={() => onOpenMaterial(primaryMaterial)}
               className="text-xs text-[#4F46E5] dark:text-[#818CF8] font-semibold hover:underline"
             >
-              Start next task: Linked Lists →
+              Start active session: {primaryMaterial.title} →
             </button>
           </div>
         </div>
       </div>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          6. SUBJECT READINESS & AI INSIGHTS & UPCOMING EXAMS
+          8. SUBJECT READINESS & UPCOMING EXAMS
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Subject Exam Readiness (5 cols) */}
+        {/* Subject Readiness */}
         <div className="lg:col-span-5 p-5 rounded-2xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-heading font-bold text-sm sm:text-base text-[#111827] dark:text-[#F5F5F7]">
               Subject Exam Readiness
             </h3>
             <span className="text-[11px] text-[#8E95A5] dark:text-[#70707B] font-mono">
-              {user.targetGpa ? `Target GPA: ${user.targetGpa}` : 'Target: 85%+'}
+              {user.targetGpa ? `Target: ${user.targetGpa}` : 'Target: 85%+'}
             </span>
           </div>
 
           <div className="space-y-3.5">
-            {[
-              { subject: 'Data Structures & Algorithms', score: 82, color: 'bg-indigo-600' },
-              { subject: 'Database Management Systems', score: 74, color: 'bg-violet-600' },
-              { subject: 'Machine Learning Foundations', score: 61, color: 'bg-emerald-600' },
-              { subject: 'Computer Networks', score: 45, color: 'bg-amber-500' }
-            ].map((item, i) => (
+            {(user.subjectProgress || [
+              { subject: 'Physics', progress: 85, color: '#06b6d4' },
+              { subject: 'Biology', progress: 78, color: '#10b981' },
+              { subject: 'DSA', progress: 80, color: '#3b82f6' },
+              { subject: 'Economics', progress: 70, color: '#f59e0b' }
+            ]).map((item, i) => (
               <div key={i} className="space-y-1.5">
                 <div className="flex justify-between text-xs">
                   <span className="font-medium text-[#111827] dark:text-[#F5F5F7] truncate">
                     {item.subject}
                   </span>
                   <span className="font-mono text-[#8E95A5] dark:text-[#70707B] font-semibold ml-2">
-                    {item.score}%
+                    {item.progress}%
                   </span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-[#E2E4E9] dark:bg-[#202027] overflow-hidden">
                   <div
-                    className={`h-full rounded-full ${item.color}`}
-                    style={{ width: `${item.score}%` }}
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${item.progress}%`,
+                      backgroundColor: item.color || '#4f46e5'
+                    }}
                   />
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Diagnostic callout: Strongest vs Needs Attention */}
           <div className="grid grid-cols-2 gap-2.5 pt-1">
             <div className="p-2.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-500/10 border border-emerald-200/70 dark:border-emerald-500/20">
               <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 font-mono">
-                STRONGEST TOPIC
+                STRONGEST CONCEPT
               </div>
               <div className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F7] mt-0.5 truncate">
-                {user.strongTopics?.[0] ? `${user.strongTopics[0]} — 94%` : 'Arrays — 94%'}
+                {user.strongTopics?.[0] || 'Active Recall Mastery'}
               </div>
             </div>
 
@@ -763,15 +818,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 NEEDS ATTENTION
               </div>
               <div className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F7] mt-0.5 truncate">
-                {user.weakTopics?.[0] ? `${user.weakTopics[0]} — 58%` : 'Trees & Graphs — 58%'}
+                {user.weakTopics?.[0] || 'Formula Drill Practice'}
               </div>
             </div>
           </div>
         </div>
 
-        {/* AI Study Insights (Coach) (4 cols) */}
-        {/* Day: Light violet tint (#F5F3FF), delicate border, dark text, violet sparkles icon */}
-        {/* Night: Deep violet tint surface, subtle border, soft white text */}
+        {/* AI Study Coach */}
         <div className="lg:col-span-4 p-5 rounded-2xl bg-[#F5F3FF] dark:bg-[#19191F] border border-indigo-200/70 dark:border-indigo-500/25 shadow-xs flex flex-col justify-between space-y-4">
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
@@ -781,42 +834,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div>
                 <div className="font-heading font-bold text-xs uppercase tracking-wider text-indigo-700 dark:text-indigo-300 font-mono flex items-center gap-1.5">
                   <span>✨ COGNORA AI COACH</span>
-                  {settings?.aiTutorPersona && (
-                    <span className="text-[9px] font-normal px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 capitalize">
-                      {settings.aiTutorPersona}
-                    </span>
-                  )}
+                  <span className="text-[9px] font-normal px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 capitalize">
+                    {user.academicLevel ? user.academicLevel.replace('_', ' ') : 'Adaptive'}
+                  </span>
                 </div>
-                <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B]">Diagnostic feedback</div>
+                <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B]">Personalized diagnostic feedback</div>
               </div>
             </div>
 
             <div className="p-3.5 rounded-xl bg-white/80 dark:bg-white/[0.04] border border-indigo-100 dark:border-white/[0.06] text-xs text-[#111827] dark:text-[#F5F5F7] leading-relaxed italic">
-              "Your quiz accuracy in <span className="font-semibold text-emerald-600 dark:text-emerald-400 not-italic">{user.strongTopics?.[0] || 'Arrays'}</span> has improved this week.
+              "Your retention in <span className="font-semibold text-emerald-600 dark:text-emerald-400 not-italic">{user.strongTopics?.[0] || 'core concepts'}</span> is strong.
               <br /><br />
-              You should revise <span className="font-semibold text-amber-600 dark:text-amber-400 not-italic">{user.weakTopics?.[0] || 'Trees & Graphs'}</span> next."
+              Let's focus on <span className="font-semibold text-amber-600 dark:text-amber-400 not-italic">{user.weakTopics?.[0] || 'targeted practice'}</span> before your next test."
             </div>
           </div>
 
           <div className="space-y-2 pt-1">
             <button
-              onClick={() => onNavigateTab('workspace')}
+              onClick={() => onNavigateTab('ask_ai')}
               className="w-full py-2 px-3 rounded-xl text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-95"
             >
-              <span>Review Weak Topic</span>
+              <span>Ask AI Coach a Doubt</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
 
             <button
-              onClick={() => (primaryMaterial ? onStartExam(primaryMaterial) : onNavigateTab('exams'))}
+              onClick={() => onNavigateTab('quizzes')}
               className="w-full py-1.5 px-3 rounded-xl text-xs font-medium text-[#4B5563] dark:text-[#A8A8B3] hover:text-[#111827] dark:hover:text-white transition-colors text-center"
             >
-              Practice Quiz Now
+              Start Practice Quiz
             </button>
           </div>
         </div>
 
-        {/* Upcoming Exams (3 cols) */}
+        {/* Upcoming Exams */}
         <div className="lg:col-span-3 p-5 rounded-2xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] shadow-xs flex flex-col justify-between space-y-3">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -826,37 +877,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <Calendar className="w-3.5 h-3.5 text-[#8E95A5] dark:text-[#70707B]" />
             </div>
 
-            <div className="space-y-2.5">
-              {[
-                {
-                  id: 'exam_1',
-                  subject: 'Data Structures',
-                  days: '12 DAYS',
-                  date: 'Sep 29',
-                  target: '90%'
-                },
-                {
-                  id: 'exam_2',
-                  subject: 'DBMS',
-                  days: '18 DAYS',
-                  date: 'Oct 05',
-                  target: '85%'
-                },
-                {
-                  id: 'exam_3',
-                  subject: 'Machine Learning',
-                  days: '31 DAYS',
-                  date: 'Oct 18',
-                  target: '88%'
-                }
-              ].map((exam) => (
+            <div className="space-y-2">
+              {upcomingExams.slice(0, 3).map((exam) => (
                 <div
                   key={exam.id}
                   className="p-2.5 rounded-xl bg-[#F7F8FC] dark:bg-[#19191F] border border-[#E2E4E9]/70 dark:border-white/[0.05] space-y-1"
                 >
                   <div className="flex items-center justify-between">
                     <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 font-mono">
-                      {exam.days}
+                      {exam.daysLeft}d left
                     </span>
                     <span className="text-[10px] text-[#8E95A5] dark:text-[#70707B] font-mono">{exam.date}</span>
                   </div>
@@ -866,7 +895,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between text-[10px] text-[#8E95A5] dark:text-[#70707B]">
-                    <span>Target: {exam.target}</span>
+                    <span>Target: {exam.targetScore || 90}%</span>
                     <button
                       onClick={() => onNavigateTab('exams')}
                       className="text-[#4F46E5] dark:text-[#818CF8] font-semibold hover:underline"
@@ -883,10 +912,118 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             onClick={() => onNavigateTab('exams')}
             className="w-full py-2 text-xs font-semibold text-[#4B5563] dark:text-[#A8A8B3] hover:text-[#111827] dark:hover:text-white text-center border-t border-[#E2E4E9] dark:border-white/[0.06] pt-2 transition-colors"
           >
-            View All Exams ({upcomingExams.length || 3})
+            View All Exams ({upcomingExams.length})
           </button>
         </div>
       </div>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          9. ACADEMIC TRACK SWITCHER MODAL
+          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {showTrackModal && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowTrackModal(false);
+          }}
+          className="fixed inset-0 z-50 bg-stone-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div className="bg-white dark:bg-[#111116] border border-[#E2E4E9] dark:border-white/[0.08] rounded-3xl max-w-2xl w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-[#E2E4E9] dark:border-white/[0.08] flex items-center justify-between shrink-0 bg-stone-50/70 dark:bg-[#16161C]/70">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+                  <Compass className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-heading font-bold text-base text-[#111827] dark:text-[#F5F5F7]">
+                    Choose Your Education Level & Track
+                  </h3>
+                  <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3]">
+                    Cognora adapts across Minor School, High School, UG, PG, and Competitive exams.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowTrackModal(false)}
+                className="p-1.5 rounded-xl text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/[0.06] transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Presets List */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
+              {ACADEMIC_TRACK_PRESETS.map((preset) => {
+                const isCurrent = user.academicLevel === preset.tier && user.degree === preset.degreeLabel;
+                return (
+                  <div
+                    key={preset.id}
+                    onClick={() => handleSelectTrack(preset)}
+                    className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                      isCurrent
+                        ? 'bg-indigo-50/80 dark:bg-indigo-950/40 border-indigo-500 text-indigo-900 dark:text-indigo-200 ring-2 ring-indigo-500/20 shadow-xs'
+                        : 'bg-white dark:bg-[#16161C] border-[#E2E4E9] dark:border-white/[0.08] hover:border-indigo-300 dark:hover:border-indigo-500/40 hover:bg-stone-50/60 dark:hover:bg-[#1c1c24]'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3.5">
+                      <div className="text-2xl p-2 rounded-xl bg-stone-100 dark:bg-white/[0.06] shrink-0">
+                        {preset.icon}
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-heading font-bold text-sm text-[#111827] dark:text-[#F5F5F7]">
+                            {preset.name}
+                          </h4>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-stone-100 dark:bg-white/[0.08] text-stone-600 dark:text-stone-300 font-semibold">
+                            {EDUCATION_TIERS[preset.tier].shortLabel}
+                          </span>
+                        </div>
+                        <p className="text-xs text-stone-500 dark:text-stone-400">
+                          {preset.degreeLabel} &bull; {preset.institutionExample}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {preset.subjects.map((sub) => (
+                            <span
+                              key={sub}
+                              className="text-[11px] px-2 py-0.5 rounded-md bg-stone-100 dark:bg-white/[0.04] text-stone-700 dark:text-stone-300 font-medium"
+                            >
+                              {sub}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all ${
+                        isCurrent
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-stone-100 dark:bg-white/[0.08] text-stone-700 dark:text-stone-200 hover:bg-indigo-600 hover:text-white'
+                      }`}
+                    >
+                      {isCurrent ? 'Active Track' : 'Select Track'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-[#E2E4E9] dark:border-white/[0.08] flex items-center justify-between bg-stone-50/50 dark:bg-[#16161C]/50">
+              <span className="text-[11px] text-stone-500">
+                You can also customize individual subjects and exams in Settings.
+              </span>
+              <button
+                onClick={() => setShowTrackModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-stone-600 dark:text-stone-300 hover:bg-stone-200/50 dark:hover:bg-white/[0.06] transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

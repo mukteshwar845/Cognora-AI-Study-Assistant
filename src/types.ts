@@ -16,7 +16,24 @@ export interface UpcomingExamItem {
   targetScore?: number;
 }
 
-export type AcademicLevel = 'high_school' | 'undergraduate' | 'postgraduate' | 'competitive_exam';
+export type AcademicLevel =
+  | 'minor_school'
+  | 'high_school'
+  | 'undergraduate'
+  | 'postgraduate'
+  | 'competitive_exam'
+  | 'professional_learner';
+
+export type SubjectDiscipline =
+  | 'all'
+  | 'school_core'
+  | 'stem_math'
+  | 'medical_bio'
+  | 'commerce_business'
+  | 'humanities_arts'
+  | 'law_governance'
+  | 'tech_coding';
+
 export type GradingScale = 'percentage' | 'gpa10' | 'gpa4';
 export type AITutorPersona = 'supportive' | 'socratic' | 'strict' | 'concise';
 export type SpacedRepetitionSpeed = 'relaxed' | 'standard' | 'cram';

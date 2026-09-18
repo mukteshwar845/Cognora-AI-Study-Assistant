@@ -426,9 +426,28 @@ export const QuizView: React.FC<QuizViewProps> = ({
                     type="text"
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
-                    placeholder="e.g. Circular Queue, ACID, Regression"
+                    placeholder="e.g. Newton's Laws, Mitosis & DNA, Demand Elasticity, Stacks"
                     className="w-full text-xs p-2.5 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-[#F7F8FC] dark:bg-[#19191F] text-[#111827] dark:text-[#F5F5F7] outline-hidden focus:border-[#4F46E5]"
                   />
+                  <div className="flex items-center gap-1.5 overflow-x-auto pt-1 scrollbar-none">
+                    <span className="text-[10px] text-[#8E95A5] dark:text-[#70707B] shrink-0 font-mono">Quick:</span>
+                    {[
+                      "Newton's 2nd Law",
+                      "Mitosis vs Meiosis",
+                      "Price Elasticity",
+                      "Photosynthesis",
+                      "Queue Condition"
+                    ].map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setTopic(t)}
+                        className="px-2 py-0.5 rounded-md text-[10px] bg-[#F1F3F8] dark:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3] hover:text-[#4F46E5] dark:hover:text-[#818CF8] whitespace-nowrap transition-colors"
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

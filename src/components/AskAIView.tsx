@@ -35,6 +35,63 @@ interface Message {
   timestamp: string;
 }
 
+const PROMPT_PRESETS: Record<string, { label: string; prompts: string[] }> = {
+  school: {
+    label: '🎒 School Core',
+    prompts: [
+      'Explain photosynthesis and why leaves appear green in simple terms',
+      'What are Newton’s 3 Laws of Motion with everyday examples?',
+      'How does the water cycle work step-by-step?',
+      'How do I calculate percentage changes easily?'
+    ]
+  },
+  stem: {
+    label: '⚡ STEM & Physics',
+    prompts: [
+      'Derive v² = u² + 2as under uniform acceleration',
+      'How to solve quadratic equations using the discriminant?',
+      'Explain the difference between velocity and acceleration vectors',
+      'What is Faraday’s Law of electromagnetic induction?'
+    ]
+  },
+  medical: {
+    label: '🧬 Bio & Medical',
+    prompts: [
+      'What is the key difference between Mitosis and Meiosis?',
+      'Explain transcription vs translation in protein synthesis',
+      'How does Mendel’s Law of Segregation work with a Punnett square?',
+      'Explain the cardiac cycle and blood flow through the heart'
+    ]
+  },
+  commerce: {
+    label: '📈 Commerce & Econ',
+    prompts: [
+      'Explain Price Elasticity of Demand with the midpoint formula',
+      'What is the difference between Balance Sheet and Cash Flow Statement?',
+      'How does central bank interest rate hike control inflation?',
+      'Explain Perfect Competition vs Monopoly market structures'
+    ]
+  },
+  humanities: {
+    label: '🏛️ Humanities & Law',
+    prompts: [
+      'Explain the doctrine of Separation of Powers with modern examples',
+      'Difference between Fundamental Rights and Directive Principles',
+      'How did the Industrial Revolution reshape society?',
+      'Explain the legal difference between Civil Law and Criminal Law'
+    ]
+  },
+  tech: {
+    label: '💻 Tech & CS',
+    prompts: [
+      'Explain circular queue full condition: (rear + 1) % size == front',
+      'Why does binary search have O(log n) time complexity?',
+      'Difference between Primary Key and Foreign Key in DBMS',
+      'How do ACID properties guarantee database transaction safety?'
+    ]
+  }
+};
+
 export const AskAIView: React.FC<AskAIViewProps> = ({
   materials,
   settings,
@@ -46,6 +103,8 @@ export const AskAIView: React.FC<AskAIViewProps> = ({
   const [activeMaterialId, setActiveMaterialId] = useState<string>(
     selectedMaterialId || (materials.length > 0 ? materials[0].id : '')
   );
+
+  const [promptCategory, setPromptCategory] = useState<string>('auto');
 
   const [mode, setMode] = useState<ExplanationMode>(
     settings?.defaultAnswerMode || 'simple'
@@ -74,14 +133,16 @@ export const AskAIView: React.FC<AskAIViewProps> = ({
     {
       id: 'welcome_1',
       sender: 'ai',
-      text: `Welcome! I am your context-aware AI Study Assistant. I am directly connected to your study library.
+      text: `Hello! I am your universal AI Study Assistant & Doubt Solver. 
 
-Select an uploaded material above, choose your preferred answer mode, and ask anything. When you ask a question:
-1. I will search your notes and provide the verified answer.
-2. I will cite the exact document & section.
-3. If the topic isn't in your notes, I will clearly tell you and provide general guidance.`,
+Whether you're in Middle School, High School, College (UG/PG), or preparing for Competitive Exams, I'm here to help across **all subjects**—STEM, Medicine, Business & Economics, Humanities, Law, or Computing.
+
+Select any study material above, choose your preferred explanation style, and ask anything:
+• **Verified Answers**: Grounded directly in your uploaded notes and textbooks.
+• **Exact Citations**: Pointing to the specific unit, section, or formula.
+• **All Formats**: From 10-year-old friendly analogies to university exam-ready bullet points!`,
       sourceReference: {
-        documentTitle: activeMaterial ? activeMaterial.title : 'Study Library',
+        documentTitle: activeMaterial ? activeMaterial.title : 'Universal Academic Hub',
         sectionOrPage: 'Context Engine'
       },
       timestamp: 'Just now'
@@ -142,10 +203,16 @@ Select an uploaded material above, choose your preferred answer mode, and ask an
       const fallbackMsg: Message = {
         id: `ai_${Date.now()}`,
         sender: 'ai',
-        text: `Based on ${activeMaterial?.title || 'your notes'}, this concept operates under structured state transitions with boundary checks. Let me know if you want to switch to Exam Ready mode for bullet points!`,
+        text: `Based on **${activeMaterial?.title || 'your core notes'}** (${activeMaterial?.subject || 'Universal'}):
+
+1. **Core Concept**: This topic centers around fundamental principles governing this system and its relationships.
+2. **Key Application**: In exams, identify the primary definitions, boundary constraints, and working formula.
+3. **Quick Review**: Make sure to practice the 2-mark definitions and 5-mark conceptual derivations provided in your notes workspace!
+
+*(Tip: Switch to "⚡ Exam Ready" mode for high-yield exam bullet points or "🧒 Explain Like I'm 10" for intuitive real-world metaphors.)*`,
         sourceReference: {
-          documentTitle: activeMaterial?.title || 'Study Material',
-          sectionOrPage: 'Unit 1 Notes'
+          documentTitle: activeMaterial?.title || 'Universal Study Material',
+          sectionOrPage: 'Core Notes Summary'
         },
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
@@ -324,23 +391,63 @@ Select an uploaded material above, choose your preferred answer mode, and ask an
       </div>
 
       {/* Suggested Doubt Queries & Input Box - Sticky Mobile First */}
-      <div className="sticky bottom-14 sm:bottom-0 bg-white/95 dark:bg-[#0B0B0F]/95 backdrop-blur-md pt-2 pb-1 -mx-2 px-2 sm:mx-0 sm:px-0 z-20 space-y-2.5">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs touch-scroll snap-x scrollbar-none">
-          <span className="text-[#8E95A5] dark:text-[#70707B] shrink-0 font-mono text-[11px]">Try asking:</span>
-          {[
-            'Explain circular queue condition in simple terms',
-            'Why does binary search require sorted data?',
-            'What is the difference between primary key and foreign key?',
-            'How do I answer an exam question on ACID properties?'
-          ].map((prompt, i) => (
+      <div className="sticky bottom-14 sm:bottom-0 bg-white/95 dark:bg-[#0B0B0F]/95 backdrop-blur-md pt-2 pb-1 -mx-2 px-2 sm:mx-0 sm:px-0 z-20 space-y-2">
+        {/* Category switcher pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-xs touch-scroll snap-x scrollbar-none">
+          <button
+            onClick={() => setPromptCategory('auto')}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap transition-colors ${
+              promptCategory === 'auto'
+                ? 'bg-indigo-600 text-white shadow-2xs font-semibold'
+                : 'bg-[#F1F3F8] dark:bg-[#19191F] text-[#6B7280] dark:text-[#A8A8B3] hover:text-[#111827] dark:hover:text-white'
+            }`}
+          >
+            🎯 {activeMaterial ? activeMaterial.subject : 'Auto Context'}
+          </button>
+          {Object.entries(PROMPT_PRESETS).map(([key, cat]) => (
             <button
-              key={i}
-              onClick={() => setInput(prompt)}
-              className="px-3 py-1.5 rounded-full whitespace-nowrap bg-white dark:bg-[#19191F] border border-[#E2E4E9] dark:border-white/[0.08] text-[#4B5563] dark:text-[#A8A8B3] hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors shadow-2xs snap-start active-press text-[11px]"
+              key={key}
+              onClick={() => setPromptCategory(key)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap transition-colors ${
+                promptCategory === key
+                  ? 'bg-indigo-600 text-white shadow-2xs font-semibold'
+                  : 'bg-[#F1F3F8] dark:bg-[#19191F] text-[#6B7280] dark:text-[#A8A8B3] hover:text-[#111827] dark:hover:text-white'
+              }`}
             >
-              {prompt}
+              {cat.label}
             </button>
           ))}
+        </div>
+
+        {/* Prompt chips */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs touch-scroll snap-x scrollbar-none">
+          <span className="text-[#8E95A5] dark:text-[#70707B] shrink-0 font-mono text-[11px]">Quick doubts:</span>
+          {(() => {
+            let prompts: string[] = [];
+            if (promptCategory === 'auto' && activeMaterial?.questions && activeMaterial.questions.length > 0) {
+              prompts = activeMaterial.questions.slice(0, 4).map((q) => q.question);
+            } else if (promptCategory !== 'auto' && PROMPT_PRESETS[promptCategory]) {
+              prompts = PROMPT_PRESETS[promptCategory].prompts;
+            } else {
+              prompts = [
+                'Explain the core definitions and key laws in simple terms',
+                'What are the high-yield 5-mark questions on this topic?',
+                'Give a real-world intuitive analogy for this principle',
+                'How do I answer an exam question on this step-by-step?'
+              ];
+            }
+
+            return prompts.map((prompt, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setInput(prompt)}
+                className="px-3 py-1.5 rounded-full whitespace-nowrap bg-white dark:bg-[#19191F] border border-[#E2E4E9] dark:border-white/[0.08] text-[#4B5563] dark:text-[#A8A8B3] hover:border-indigo-400 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors shadow-2xs snap-start active-press text-[11px]"
+              >
+                {prompt}
+              </button>
+            ));
+          })()}
         </div>
 
         <form onSubmit={handleSubmit} className="relative flex items-center">

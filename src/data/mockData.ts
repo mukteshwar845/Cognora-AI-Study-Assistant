@@ -26,9 +26,9 @@ export const initialUser: UserProfile = {
   id: 'user_mukteswar_1',
   name: 'Mukteswar',
   email: 'mukteswar.g@example.edu',
-  institution: 'National Institute of Technology',
-  bio: 'CS Undergrad specializing in Distributed Systems & AI. Aiming for 9.0+ CGPA.',
-  degree: 'B.Tech in Computer Science & Engineering',
+  institution: 'Cognora Academic Academy',
+  bio: 'Aiming for academic excellence through active recall, structured notes, and AI doubt solving.',
+  degree: 'Undergraduate Program (UG)',
   semester: 'Semester 5',
   graduationYear: '2027',
   targetGpa: '9.2 / 10.0',
@@ -43,61 +43,81 @@ export const initialUser: UserProfile = {
   quizzesAttempted: 142,
   quizAverage: 82,
   averageQuizScore: 82,
-  totalMaterialsUploaded: 4,
-  subjectsEnrolled: ['Data Structures', 'DBMS', 'Machine Learning', 'Computer Networks'],
+  totalMaterialsUploaded: 7,
+  subjectsEnrolled: [
+    'Physics (Mechanics)',
+    'Cellular Biology & Genetics',
+    'Data Structures & Algorithms',
+    'Microeconomics',
+    'General Science'
+  ],
   upcomingExams: [
     {
       id: 'exam_1',
-      subject: 'Data Structures & Algorithms',
+      subject: 'Physics — Kinematics & Motion',
       date: '2026-09-29',
-      daysLeft: 12,
-      targetScore: 90
+      daysLeft: 11,
+      targetScore: 92
     },
     {
       id: 'exam_2',
-      subject: 'Database Management Systems',
+      subject: 'Data Structures & Algorithms',
       date: '2026-10-05',
-      daysLeft: 18,
-      targetScore: 85
+      daysLeft: 17,
+      targetScore: 90
     },
     {
       id: 'exam_3',
-      subject: 'Machine Learning',
+      subject: 'Cellular Biology & Genetics',
       date: '2026-10-18',
-      daysLeft: 31,
+      daysLeft: 30,
       targetScore: 88
+    },
+    {
+      id: 'exam_4',
+      subject: 'Microeconomics & Pricing',
+      date: '2026-10-25',
+      daysLeft: 37,
+      targetScore: 85
     }
   ],
   targetExams: [
     {
       id: 'exam_1',
-      subject: 'Data Structures & Algorithms',
+      subject: 'Physics — Kinematics & Motion',
       date: '2026-09-29',
-      daysLeft: 12,
-      targetScore: 90
+      daysLeft: 11,
+      targetScore: 92
     },
     {
       id: 'exam_2',
-      subject: 'Database Management Systems',
+      subject: 'Data Structures & Algorithms',
       date: '2026-10-05',
-      daysLeft: 18,
-      targetScore: 85
+      daysLeft: 17,
+      targetScore: 90
     },
     {
       id: 'exam_3',
-      subject: 'Machine Learning',
+      subject: 'Cellular Biology & Genetics',
       date: '2026-10-18',
-      daysLeft: 31,
+      daysLeft: 30,
       targetScore: 88
+    },
+    {
+      id: 'exam_4',
+      subject: 'Microeconomics & Pricing',
+      date: '2026-10-25',
+      daysLeft: 37,
+      targetScore: 85
     }
   ],
-  weakTopics: ['Graph Cycle Detection', 'B+ Tree Indexing Splitting', 'Overfitting & L2 Regularization'],
-  strongTopics: ['Binary Search', 'Stack LIFO & Queues', 'Relational Algebra', 'ACID Properties'],
+  weakTopics: ['Electromagnetic Induction', 'Dynamic Programming Memoization', 'Price Elasticity Calculations'],
+  strongTopics: ['Newtonian Kinematics', 'Mitosis Cell Division', 'Binary Search & Sorting', 'Photosynthesis Equation'],
   subjectProgress: [
+    { subject: 'Physics', progress: 85, color: '#06b6d4' },
+    { subject: 'Biology', progress: 78, color: '#10b981' },
     { subject: 'DSA', progress: 80, color: '#3b82f6' },
-    { subject: 'Data Science', progress: 60, color: '#10b981' },
-    { subject: 'DBMS', progress: 70, color: '#8b5cf6' },
-    { subject: 'Computer Networks', progress: 45, color: '#f59e0b' }
+    { subject: 'Economics', progress: 70, color: '#f59e0b' }
   ]
 };
 
@@ -803,45 +823,598 @@ Perceptron is single-layer threshold classifier: y = sign(w . x + b). Cannot sol
         topic: 'Regularization'
       }
     ]
+  },
+  {
+    id: 'mat_physics_1',
+    title: 'Physics — Kinematics & Newton\'s Laws of Motion',
+    subject: 'Physics',
+    chapter: 'Unit 1: Motion in One Dimension & Force Dynamics',
+    uploadDate: '2026-09-15',
+    fileSize: '3.6 MB',
+    fileType: 'pdf',
+    pageCount: 30,
+    isFavorite: true,
+    rawText: `Physics Mechanics Unit 1: Kinematics and Dynamics.
+Displacement (s), Initial velocity (u), Final velocity (v), Constant acceleration (a), and Time (t).
+Equations of Motion for uniform acceleration:
+1. v = u + at
+2. s = ut + 0.5 * a * t^2
+3. v^2 = u^2 + 2as
+Newton's First Law (Inertia): An object remains at rest or in uniform motion in a straight line unless acted upon by a net external force.
+Newton's Second Law: The rate of change of momentum is directly proportional to the applied force: F = dp/dt = m * a (for constant mass).
+Newton's Third Law: For every action, there is an equal and opposite reaction (F_AB = -F_BA).
+Frictional Force: Static friction f_s <= mu_s * N; Kinetic friction f_k = mu_k * N.
+Momentum: p = m * v. In the absence of external net force, total momentum is conserved: m1*u1 + m2*u2 = m1*v1 + m2*v2.`,
+    summary: {
+      tldr: 'Comprehensive coverage of 1D Kinematics and Newtonian Dynamics: Uniform acceleration equations, Newton\'s three laws of motion, friction mechanics, and linear momentum conservation.',
+      detailed: 'This unit establishes foundational Newtonian mechanics. It begins with kinematic motion variables under constant acceleration, deriving the three fundamental equations of motion. It then investigates force interactions through Newton\'s three laws, defining inertia, momentum flux (F = dp/dt), and action-reaction pairs. Normal contact forces, static and kinetic friction limits, and inelastic vs. elastic collision conservation laws are analyzed.',
+      keyTakeaways: [
+        'Kinematic equations strictly apply only under constant, uniform acceleration.',
+        'Newton\'s First Law introduces inertial reference frames; Second Law establishes the dynamic relation F = ma.',
+        'Action and reaction forces act on two DIFFERENT interacting bodies simultaneously.',
+        'Maximum static friction exceeds kinetic friction (μs > μk), creating breakaway threshold behavior.',
+        'Total linear momentum is conserved in any isolated system with zero net external impulse.'
+      ],
+      importantTopics: [
+        { topic: 'Equations of Motion Derivation & Graphs', relevanceScore: 98 },
+        { topic: 'Newton\'s Second Law & Free Body Diagrams (FBD)', relevanceScore: 96 },
+        { topic: 'Static vs Kinetic Friction on Inclined Planes', relevanceScore: 91 },
+        { topic: 'Conservation of Linear Momentum & Recoil Velocity', relevanceScore: 89 }
+      ]
+    },
+    shortNotes: [
+      {
+        id: 'sn_phy_1',
+        title: 'Kinematics Equations Summary',
+        definition: 'Mathematical relationships connecting displacement, velocity, acceleration, and time under uniform acceleration.',
+        conditions: [
+          'Acceleration (a) must be constant throughout the motion',
+          'Direction must be consistently signed (+ for forward/upward, - for backward/downward)',
+          'For free-fall under gravity, a = -g = -9.8 m/s²'
+        ],
+        examTip: 'Whenever a body starts from rest, set u = 0. When it comes to a stop, set v = 0.'
+      },
+      {
+        id: 'sn_phy_2',
+        title: 'Newton\'s Laws of Motion',
+        definition: 'Three empirical axioms formulated by Sir Isaac Newton describing the relationship between a body and the forces acting upon it.',
+        conditions: [
+          'First Law: Defines Inertia (mass is the quantitative measure of inertia)',
+          'Second Law: F_net = m * a (vector equation resolved into x and y components)',
+          'Third Law: Action-reaction pairs never cancel each other because they act on different bodies'
+        ],
+        examTip: 'In Free Body Diagrams (FBD), always isolate the object and draw ONLY forces acting ON the object, never forces exerted BY the object.'
+      }
+    ],
+    keyConcepts: [
+      {
+        title: 'Inertia & Mass Relation',
+        explanation: 'Inertia is the inherent resistance of any physical object to any change in its velocity. Mass is the quantitative measurement of inertia.',
+        category: 'Dynamics'
+      },
+      {
+        title: 'Friction on Inclines',
+        explanation: 'For a block on an incline of angle θ, the normal force is N = mg cos θ and the parallel downward gravitational component is mg sin θ.',
+        category: 'Applied Mechanics'
+      }
+    ],
+    formulas: [
+      {
+        id: 'f_phy_1',
+        name: 'First Equation of Motion',
+        formula: 'v = u + a · t',
+        description: 'Relates final velocity (v), initial velocity (u), uniform acceleration (a), and elapsed time (t).',
+        subject: 'Physics'
+      },
+      {
+        id: 'f_phy_2',
+        name: 'Second Equation of Motion (Displacement)',
+        formula: 's = u · t + ½ · a · t²',
+        description: 'Calculates total displacement under constant acceleration.',
+        subject: 'Physics'
+      },
+      {
+        id: 'f_phy_3',
+        name: 'Third Equation of Motion (Time-Independent)',
+        formula: 'v² = u² + 2 · a · s',
+        description: 'Connects velocities, acceleration, and displacement without requiring elapsed time.',
+        subject: 'Physics'
+      },
+      {
+        id: 'f_phy_4',
+        name: 'Newton\'s Second Law of Motion',
+        formula: 'F_net = m · a',
+        description: 'Net force equals mass times acceleration for constant-mass systems.',
+        subject: 'Physics'
+      },
+      {
+        id: 'f_phy_5',
+        name: 'Conservation of Linear Momentum',
+        formula: 'm₁u₁ + m₂u₂ = m₁v₁ + m₂v₂',
+        description: 'Total momentum before collision equals total momentum after collision in isolated systems.',
+        subject: 'Physics'
+      }
+    ],
+    hasFormulas: true,
+    definitions: [
+      {
+        id: 'def_phy_1',
+        term: 'Inertia',
+        definition: 'The property of matter by which it retains its state of rest or its velocity along a straight line so long as it is not acted upon by an external force.',
+        isImportant: true,
+        category: 'Mechanics'
+      },
+      {
+        id: 'def_phy_2',
+        term: 'Linear Momentum',
+        definition: 'The product of the mass and velocity of an object (p = mv), a vector quantity possessing the direction of velocity.',
+        isImportant: true,
+        category: 'Mechanics'
+      }
+    ],
+    questions: [
+      {
+        id: 'q_phy_s1',
+        question: 'State Newton\'s Second Law of Motion and show how F = ma is derived.',
+        answer: '• Statement: The rate of change of momentum of a body is directly proportional to the applied force and takes place in the direction of the force.\n• Derivation: Momentum p = mv. Force F ∝ dp/dt = d(mv)/dt. If mass m is constant, F = m(dv/dt) = ma.',
+        marks: 2,
+        type: 'short',
+        examType: 'Short Answer (2 Marks)',
+        importance: 'high'
+      },
+      {
+        id: 'q_phy_c1',
+        question: 'Explain why a cricket fielder pulls their hands backwards while catching a fast-moving ball.',
+        answer: '• Impulse Equation: Impulse J = F · Δt = Δp (change in momentum is constant for a given ball speed).\n• Hand Motion: By pulling hands backwards, the fielder increases the contact impact time Δt.\n• Result: Since F = Δp / Δt, increasing Δt reduces the impact force F exerted on the hands, preventing pain and injury.',
+        marks: 5,
+        type: 'conceptual',
+        examType: 'Conceptual Application (5 Marks)',
+        importance: 'critical'
+      }
+    ],
+    flashcards: [
+      {
+        id: 'fc_phy_1',
+        materialId: 'mat_physics_1',
+        front: 'What is the formula for displacement under uniform acceleration?',
+        back: 's = ut + ½at² (where u is initial velocity, a is acceleration, and t is time).',
+        topic: 'Kinematics',
+        difficulty: 'easy',
+        isDifficult: false,
+        status: 'mastered'
+      }
+    ],
+    quizzes: [
+      {
+        id: 'qz_phy_1',
+        materialId: 'mat_physics_1',
+        question: 'A car starting from rest accelerates uniformly at 2 m/s² for 5 seconds. What is its final velocity?',
+        type: 'mcq',
+        options: ['5 m/s', '10 m/s', '15 m/s', '20 m/s'],
+        correctAnswer: '10 m/s',
+        explanation: 'Using v = u + at: with u = 0, a = 2 m/s², and t = 5 s: v = 0 + (2)(5) = 10 m/s.',
+        difficulty: 'easy',
+        topic: 'Kinematics'
+      }
+    ]
+  },
+  {
+    id: 'mat_bio_1',
+    title: 'Cellular Biology & Genetics — Mitosis, DNA & Mendelian Rules',
+    subject: 'Biology',
+    chapter: 'Unit 2: Cell Division, DNA Replication & Inheritance',
+    uploadDate: '2026-09-16',
+    fileSize: '5.1 MB',
+    fileType: 'pdf',
+    pageCount: 36,
+    isFavorite: true,
+    rawText: `Cellular Biology: Mitosis, Meiosis, DNA Replication, and Genetics.
+The Cell Cycle: Interphase (G1, S, G2) and M Phase (Mitosis and Cytokinesis).
+Mitosis stages: Prophase, Metaphase (chromosomes align at equatorial plate), Anaphase (sister chromatids separate), Telophase (nuclear membrane reforms).
+DNA Structure: Double helix discovered by Watson & Crick. Complementary base pairing: Adenine pairs with Thymine (2 H-bonds), Guanine pairs with Cytosine (3 H-bonds).
+DNA Replication is semi-conservative (Meselson-Stahl experiment). Key enzymes: Helicase (unwinds DNA), DNA Polymerase (synthesizes complementary strand 5' to 3'), Primase (RNA primer), Ligase (seals Okazaki fragments).
+Mendel's Laws of Inheritance:
+1. Law of Dominance: Heterozygous genotype expresses dominant phenotype.
+2. Law of Segregation: Alleles separate during gamete formation so each gamete carries one allele. Monohybrid cross phenotypic ratio is 3:1, genotypic ratio is 1:2:1.
+3. Law of Independent Assortment: Dihybrid cross phenotypic ratio is 9:3:3:1.`,
+    summary: {
+      tldr: 'Covers eukaryotic cell division cycles (Mitosis vs Meiosis), semi-conservative DNA replication mechanisms, molecular base-pairing rules, and classic Mendelian inheritance genetics.',
+      detailed: 'This unit covers foundational molecular and cellular genetics. It analyzes the cell cycle progression through Interphase checkpoints and Mitotic karyokinesis stages. It contrasts equational mitotic division against reductional meiotic division. Molecular analysis explores DNA double-helix antiparallel topology, replication fork dynamics with leading and lagging strands, and concludes with Mendelian monohybrid and dihybrid cross ratios.',
+      keyTakeaways: [
+        'Mitosis produces 2 genetically identical diploid daughter cells; Meiosis produces 4 genetically distinct haploid gametes.',
+        'DNA replication is semi-conservative: each daughter double helix retains one parental strand and one newly synthesized strand.',
+        'DNA Polymerase can only synthesize DNA in the 5\' to 3\' direction, necessitating Okazaki fragments on the lagging strand.',
+        'Monohybrid F2 cross yields 3:1 phenotypic and 1:2:1 genotypic ratios under complete dominance.',
+        'Independent assortment applies to genes located on different chromosomes or far apart on the same chromosome.'
+      ],
+      importantTopics: [
+        { topic: 'Stages of Mitosis vs Meiosis & Crossing Over', relevanceScore: 98 },
+        { topic: 'DNA Replication Fork Enzymes & Okazaki Fragments', relevanceScore: 95 },
+        { topic: 'Mendelian Crosses & Punnett Square Ratios', relevanceScore: 92 },
+        { topic: 'Complementary Base Pairing & Hydrogen Bonds', relevanceScore: 88 }
+      ]
+    },
+    shortNotes: [
+      {
+        id: 'sn_bio_1',
+        title: 'Stages of Mitosis (PMAT)',
+        definition: 'Process of nuclear division in eukaryotic cells that produces two daughter nuclei identical to parent nucleus.',
+        conditions: [
+          'Prophase: Chromatin condenses into chromosomes; spindle apparatus forms',
+          'Metaphase: Chromosomes align along the metaphase equatorial plate',
+          'Anaphase: Centromeres split; sister chromatids migrate to opposite poles',
+          'Telophase: Nuclear envelopes reform; chromatin decondenses'
+        ],
+        examTip: 'High-yield mnemonic: PMAT (Prophase, Metaphase, Anaphase, Telophase). Remember that DNA replication occurs during Interphase S-phase, NOT during Mitosis!'
+      }
+    ],
+    keyConcepts: [
+      {
+        title: 'Semi-Conservative DNA Replication',
+        explanation: 'Each replicated DNA molecule consists of one original conserved strand and one newly synthesized daughter strand, proven experimentally by Meselson and Stahl.',
+        category: 'Molecular Genetics'
+      }
+    ],
+    formulas: [
+      {
+        id: 'f_bio_1',
+        name: 'Mendelian Monohybrid F2 Phenotypic Ratio',
+        formula: 'Dominant : Recessive = 3 : 1',
+        description: 'Phenotypic probability distribution in F2 generation of a monohybrid cross under complete dominance.',
+        subject: 'Biology'
+      },
+      {
+        id: 'f_bio_2',
+        name: 'Mendelian Dihybrid F2 Phenotypic Ratio',
+        formula: '9 : 3 : 3 : 1',
+        description: 'Standard phenotypic ratio for two independently assorting unlinked genes in the F2 generation.',
+        subject: 'Biology'
+      },
+      {
+        id: 'f_bio_3',
+        name: 'Chargaff\'s DNA Base-Pairing Rule',
+        formula: '[A] = [T]  and  [G] = [C]  ⇒  [A + G] = [T + C]',
+        description: 'The concentration of purines equals the concentration of pyrimidines in double-stranded DNA.',
+        subject: 'Biology'
+      }
+    ],
+    hasFormulas: true,
+    definitions: [
+      {
+        id: 'def_bio_1',
+        term: 'Allele',
+        definition: 'One of two or more alternative forms of a gene that arise by mutation and are found at the same place on a chromosome.',
+        isImportant: true,
+        category: 'Genetics'
+      }
+    ],
+    questions: [
+      {
+        id: 'q_bio_s1',
+        question: 'State Chargaff\'s Rule of DNA base composition.',
+        answer: '• Rule: In any double-stranded DNA molecule, the amount of Adenine (A) equals Thymine (T), and Guanine (G) equals Cytosine (C).\n• Ratio: Consequently, the ratio of total purines (A + G) to total pyrimidines (T + C) is always 1:1.',
+        marks: 2,
+        type: 'short',
+        examType: 'Short Answer (2 Marks)',
+        importance: 'high'
+      }
+    ],
+    flashcards: [
+      {
+        id: 'fc_bio_1',
+        materialId: 'mat_bio_1',
+        front: 'In what direction does DNA Polymerase synthesize new DNA strands?',
+        back: 'Strictly in the 5\' to 3\' direction (adding nucleotides to the 3\' OH end).',
+        topic: 'DNA Replication',
+        difficulty: 'medium',
+        isDifficult: false,
+        status: 'mastered'
+      }
+    ],
+    quizzes: [
+      {
+        id: 'qz_bio_1',
+        materialId: 'mat_bio_1',
+        question: 'During which mitotic stage do sister chromatids separate and move toward opposite poles?',
+        type: 'mcq',
+        options: ['Prophase', 'Metaphase', 'Anaphase', 'Telophase'],
+        correctAnswer: 'Anaphase',
+        explanation: 'In Anaphase, cohesin proteins degrade, centromeres split, and kinetochore microtubules pull sister chromatids to opposite poles.',
+        difficulty: 'easy',
+        topic: 'Mitosis'
+      }
+    ]
+  },
+  {
+    id: 'mat_econ_1',
+    title: 'Microeconomics — Demand Elasticity & Market Pricing',
+    subject: 'Economics',
+    chapter: 'Unit 1: Price Theory, Consumer Choice & Elasticity',
+    uploadDate: '2026-09-17',
+    fileSize: '3.2 MB',
+    fileType: 'pdf',
+    pageCount: 26,
+    isFavorite: false,
+    rawText: `Microeconomics: Demand, Supply, and Elasticity.
+The Law of Demand: Other factors remaining constant (ceteris paribus), as price of a good increases, quantity demanded decreases (inverse relationship).
+Price Elasticity of Demand (Ed): Measures the responsiveness of quantity demanded to a change in price.
+Formula: Ed = (% change in Quantity Demanded) / (% change in Price) = (dQ / dP) * (P / Q).
+Elasticity Categories:
+Ed > 1: Price Elastic (luxuries, many substitutes).
+Ed < 1: Price Inelastic (necessities, insulin, fuel).
+Ed = 1: Unitary Elastic (Total Revenue remains unchanged).
+Ed = 0: Perfectly Inelastic (vertical demand curve).
+Ed = infinity: Perfectly Elastic (horizontal demand curve).
+Total Revenue Rule:
+If demand is Elastic, lowering price increases Total Revenue.
+If demand is Inelastic, lowering price decreases Total Revenue.
+Market Equilibrium: Occurs at price where Quantity Demanded equals Quantity Supplied (Qd = Qs).`,
+    summary: {
+      tldr: 'Core principles of Microeconomic price theory: Law of demand, price elasticity coefficient calculation, total revenue optimization, and market clearing equilibrium.',
+      detailed: 'This unit develops the foundational framework of microeconomic consumer theory. It formalizes the downward-sloping demand curve under ceteris paribus assumptions. It defines price elasticity of demand using percentage and point methods, connecting elasticity coefficients to firm Total Revenue curves. It analyzes determinants of elasticity and demonstrates competitive market equilibrium determination.',
+      keyTakeaways: [
+        'Demand curves slope downward due to substitution and income effects.',
+        'Price elasticity of demand (Ed) measures responsiveness: %ΔQd / %ΔP.',
+        'Inelastic goods (Ed < 1) allow producers to increase revenue by raising prices.',
+        'Elastic goods (Ed > 1) cause total revenue to decline if prices are raised.',
+        'Market equilibrium is stable when excess demand bids price up and excess supply bids price down.'
+      ],
+      importantTopics: [
+        { topic: 'Price Elasticity of Demand & Total Revenue Relationship', relevanceScore: 97 },
+        { topic: 'Point Elasticity vs Arc Elasticity Formula', relevanceScore: 92 },
+        { topic: 'Market Clearing Equilibrium & Price Ceilings/Floors', relevanceScore: 89 }
+      ]
+    },
+    shortNotes: [
+      {
+        id: 'sn_econ_1',
+        title: 'Price Elasticity of Demand (Ed)',
+        definition: 'A quantitative measure of consumer sensitivity to price variations.',
+        conditions: [
+          'Ed > 1: Elastic (consumers respond strongly to price changes)',
+          'Ed = 1: Unitary (percentage changes in price and quantity are identical)',
+          'Ed < 1: Inelastic (consumers must purchase regardless of price hike)'
+        ],
+        examTip: 'Remember the Total Revenue test: If price and total revenue move in opposite directions, demand is elastic. If they move in the same direction, demand is inelastic.'
+      }
+    ],
+    keyConcepts: [
+      {
+        title: 'Total Revenue & Elasticity Matrix',
+        explanation: 'Firms can only expand revenue by cutting prices when demand is elastic. For inelastic products, price increases drive revenue growth.',
+        category: 'Pricing Strategy'
+      }
+    ],
+    formulas: [
+      {
+        id: 'f_econ_1',
+        name: 'Price Elasticity of Demand (Ed)',
+        formula: 'E_d = (% Δ Quantity Demanded) / (% Δ Price) = (ΔQ / Q) / (ΔP / P)',
+        description: 'Measures proportional responsiveness of quantity demanded to price variation.',
+        subject: 'Economics'
+      },
+      {
+        id: 'f_econ_2',
+        name: 'Total Revenue Formula',
+        formula: 'TR = Price × Quantity = P · Q',
+        description: 'Gross revenue generated by selling Q units at market price P.',
+        subject: 'Economics'
+      },
+      {
+        id: 'f_econ_3',
+        name: 'Competitive Market Equilibrium',
+        formula: 'Q_demand(P*) = Q_supply(P*)',
+        description: 'Condition where quantity demanded equals quantity supplied with no shortage or surplus.',
+        subject: 'Economics'
+      }
+    ],
+    hasFormulas: true,
+    definitions: [
+      {
+        id: 'def_econ_1',
+        term: 'Ceteris Paribus',
+        definition: 'Latin phrase meaning "all other things being equal" or held constant during economic model testing.',
+        isImportant: true,
+        category: 'Economics Methodology'
+      }
+    ],
+    questions: [
+      {
+        id: 'q_econ_s1',
+        question: 'Why does lowering the price of a price-inelastic good reduce a company\'s total revenue?',
+        answer: '• Explanation: In an inelastic market (Ed < 1), the percentage increase in quantity demanded is smaller than the percentage drop in price.\n• Mathematical Impact: Total Revenue TR = P · Q. Because price falls by a larger proportion than volume expands, total dollar revenue declines.',
+        marks: 2,
+        type: 'short',
+        examType: 'Short Answer (2 Marks)',
+        importance: 'high'
+      }
+    ],
+    flashcards: [
+      {
+        id: 'fc_econ_1',
+        materialId: 'mat_econ_1',
+        front: 'What is the value of Price Elasticity of Demand for an essential medicine like Insulin?',
+        back: 'Near 0 (Highly Inelastic), because patients require the exact dosage regardless of price fluctuations.',
+        topic: 'Elasticity',
+        difficulty: 'easy',
+        isDifficult: false,
+        status: 'mastered'
+      }
+    ],
+    quizzes: [
+      {
+        id: 'qz_econ_1',
+        materialId: 'mat_econ_1',
+        question: 'When the price elasticity of demand for a good is greater than 1, demand is classified as:',
+        type: 'mcq',
+        options: ['Inelastic', 'Elastic', 'Unitary', 'Perfect'],
+        correctAnswer: 'Elastic',
+        explanation: 'When Ed > 1, consumers respond with a greater percentage change in quantity than the percentage price shift, indicating elastic demand.',
+        difficulty: 'easy',
+        topic: 'Elasticity'
+      }
+    ]
+  },
+  {
+    id: 'mat_science_1',
+    title: 'General Science — Photosynthesis & The Ecosystem',
+    subject: 'General Science',
+    chapter: 'Unit 1: Plant Life, Energy Flow & Food Webs',
+    uploadDate: '2026-09-17',
+    fileSize: '2.5 MB',
+    fileType: 'pdf',
+    pageCount: 20,
+    isFavorite: false,
+    rawText: `General Science: Plants, Photosynthesis, and Ecosystem Energy Flow.
+Photosynthesis is the process by which green plants make their own food using sunlight, water, and carbon dioxide.
+Word Equation: Carbon dioxide + Water + Sunlight -> Glucose + Oxygen.
+Chemical Equation: 6CO2 + 6H2O + Sunlight -> C6H12O6 + 6O2.
+Key Plant Parts:
+Chloroplasts: Organelles containing chlorophyll (green pigment) that absorbs sunlight energy.
+Stomata: Tiny pores on the underside of leaves for gas exchange (CO2 in, O2 out).
+Xylem: Vessels that transport water and minerals upward from roots to leaves.
+Phloem: Vessels that transport manufactured food (sugars) throughout the plant.
+Ecosystem Food Chain:
+Sun (Primary Energy Source) -> Producer (Green Plants) -> Primary Consumer (Herbivore: Deer, Rabbit) -> Secondary Consumer (Carnivore: Wolf, Snake) -> Tertiary Consumer (Apex Predator: Lion, Eagle).
+Decomposers (Fungi, Bacteria): Break down dead matter and return nutrients to soil.`,
+    summary: {
+      tldr: 'Foundational introduction to photosynthesis in plants, plant vascular transport (xylem & phloem), food chains, and ecological energy transfer.',
+      detailed: 'This unit introduces core biological science for middle and secondary learners. It explores the mechanism of autotrophic nutrition through photosynthesis, explaining how chloroplasts convert radiant solar energy into chemical energy stored in glucose molecules. It details stomatal gas exchange, vascular fluid transport via xylem and phloem, and expands outward into ecological food webs and trophic levels.',
+      keyTakeaways: [
+        'Photosynthesis converts water and carbon dioxide into glucose and releases oxygen gas.',
+        'Chlorophyll is the green pigment in chloroplasts that absorbs light energy.',
+        'Xylem carries water up; phloem carries prepared food in all directions.',
+        'Plants are autotrophs (producers) forming the foundation of all terrestrial food webs.',
+        'Energy flows unidirectionally from the sun through trophic levels, diminishing at each step.'
+      ],
+      importantTopics: [
+        { topic: 'Photosynthesis Word & Chemical Equation', relevanceScore: 99 },
+        { topic: 'Chloroplast, Chlorophyll & Stomatal Gas Exchange', relevanceScore: 94 },
+        { topic: 'Xylem vs Phloem Plant Transport Vessels', relevanceScore: 89 },
+        { topic: 'Producers, Consumers & Decomposers in Food Webs', relevanceScore: 85 }
+      ]
+    },
+    shortNotes: [
+      {
+        id: 'sn_sci_1',
+        title: 'Photosynthesis Overview',
+        definition: 'Process by which green plants manufacture glucose from CO2 and H2O in the presence of sunlight and chlorophyll.',
+        conditions: [
+          'Raw materials needed: Carbon dioxide (from air) and Water (from soil)',
+          'Conditions necessary: Sunlight and Chlorophyll',
+          'Products formed: Glucose (food) and Oxygen (byproduct released into atmosphere)'
+        ],
+        examTip: 'Remember the formula: 6CO2 + 6H2O → C6H12O6 + 6O2. Remember that oxygen is released as a vital byproduct!'
+      }
+    ],
+    keyConcepts: [
+      {
+        title: 'Xylem vs Phloem',
+        explanation: 'Xylem acts like an elevator moving water only upwards from roots to leaves. Phloem acts like a two-way delivery truck carrying food everywhere.',
+        category: 'Plant Transport'
+      }
+    ],
+    formulas: [
+      {
+        id: 'f_sci_1',
+        name: 'Photosynthesis Chemical Equation',
+        formula: '6CO₂ + 6H₂O + Sunlight → C₆H₁₂O₆ + 6O₂',
+        description: 'The balanced biochemical equation describing glucose production and oxygen release in plants.',
+        subject: 'General Science'
+      }
+    ],
+    hasFormulas: true,
+    definitions: [
+      {
+        id: 'def_sci_1',
+        term: 'Chlorophyll',
+        definition: 'The green pigment found in chloroplasts of plant cells that absorbs light energy required for photosynthesis.',
+        isImportant: true,
+        category: 'Plant Biology'
+      },
+      {
+        id: 'def_sci_2',
+        term: 'Stomata',
+        definition: 'Microscopic pores on leaf surfaces regulated by guard cells to permit carbon dioxide intake and oxygen release.',
+        isImportant: true,
+        category: 'Plant Anatomy'
+      }
+    ],
+    questions: [
+      {
+        id: 'q_sci_s1',
+        question: 'Write the chemical equation for photosynthesis and name the byproduct gas released.',
+        answer: '• Chemical Equation: 6CO2 + 6H2O + Sunlight (with Chlorophyll) → C6H12O6 + 6O2\n• Byproduct Gas: Oxygen (O2) is released into the atmosphere, which all aerobic living organisms breathe.',
+        marks: 2,
+        type: 'short',
+        examType: 'School Examination (2 Marks)',
+        importance: 'high'
+      }
+    ],
+    flashcards: [
+      {
+        id: 'fc_sci_1',
+        materialId: 'mat_science_1',
+        front: 'What plant tissue transports water upward from the roots to the leaves?',
+        back: 'Xylem tissue.',
+        topic: 'Plant Transport',
+        difficulty: 'easy',
+        isDifficult: false,
+        status: 'mastered'
+      }
+    ],
+    quizzes: [
+      {
+        id: 'qz_sci_1',
+        materialId: 'mat_science_1',
+        question: 'Which gas do plants take in from the atmosphere through their stomata to perform photosynthesis?',
+        type: 'mcq',
+        options: ['Oxygen', 'Carbon Dioxide', 'Nitrogen', 'Hydrogen'],
+        correctAnswer: 'Carbon Dioxide',
+        explanation: 'Plants absorb Carbon Dioxide (CO2) from the air through microscopic leaf openings called stomata.',
+        difficulty: 'easy',
+        topic: 'Photosynthesis'
+      }
+    ]
   }
 ];
 
 export const initialStudyPlan: StudyPlanSession[] = [
   {
     id: 'sp_1',
-    time: '6:00 PM',
-    subject: 'DBMS',
+    time: '5:30 PM',
+    subject: 'Physics',
     durationMinutes: 45,
     taskType: 'study',
     completed: true,
-    notes: 'Review BCNF and 3NF decomposition examples'
+    notes: 'Solve Kinematics uniform acceleration problems'
   },
   {
     id: 'sp_2',
-    time: '7:00 PM',
-    subject: 'DSA',
-    durationMinutes: 60,
+    time: '6:30 PM',
+    subject: 'Biology',
+    durationMinutes: 40,
+    taskType: 'quiz',
+    completed: false,
+    notes: 'Review Mitosis vs Meiosis stages and active recall'
+  },
+  {
+    id: 'sp_3',
+    time: '7:30 PM',
+    subject: 'Data Structures',
+    durationMinutes: 50,
     taskType: 'mock_exam',
     completed: false,
     notes: 'Unit 1 practice exam: Stacks, Queues & Linked Lists'
   },
   {
-    id: 'sp_3',
-    time: '8:15 PM',
-    subject: 'DSA',
-    durationMinutes: 20,
+    id: 'sp_4',
+    time: '8:45 PM',
+    subject: 'Economics',
+    durationMinutes: 30,
     taskType: 'flashcards',
     completed: false,
-    notes: 'Review 15 flashcards marked as difficult'
-  },
-  {
-    id: 'sp_4',
-    time: '9:00 PM',
-    subject: 'Data Science',
-    durationMinutes: 30,
-    taskType: 'quiz',
-    completed: false,
-    notes: 'Quick quiz on Regularization & Gradient Descent'
+    notes: 'Review Elasticity coefficients and Total Revenue rules'
   }
 ];
 

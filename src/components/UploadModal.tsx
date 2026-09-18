@@ -81,14 +81,25 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     const baseName = file.name.replace(/\.[^/.]+$/, '');
     if (!title) setTitle(baseName);
     if (!subject) {
-      if (file.name.toLowerCase().includes('dsa') || file.name.toLowerCase().includes('data structure')) {
-        setSubject('Data Structures');
-      } else if (file.name.toLowerCase().includes('dbms') || file.name.toLowerCase().includes('database')) {
-        setSubject('DBMS');
-      } else if (file.name.toLowerCase().includes('ml') || file.name.toLowerCase().includes('machine')) {
-        setSubject('Machine Learning');
-      } else {
+      const lower = file.name.toLowerCase();
+      if (lower.includes('physic') || lower.includes('motion') || lower.includes('kinematic') || lower.includes('optics')) {
+        setSubject('Physics');
+      } else if (lower.includes('bio') || lower.includes('cell') || lower.includes('genetic') || lower.includes('dna') || lower.includes('medic')) {
+        setSubject('Biology');
+      } else if (lower.includes('chem') || lower.includes('organic') || lower.includes('reaction')) {
+        setSubject('Chemistry');
+      } else if (lower.includes('math') || lower.includes('calculus') || lower.includes('algebra') || lower.includes('geom')) {
+        setSubject('Mathematics');
+      } else if (lower.includes('econ') || lower.includes('market') || lower.includes('finance') || lower.includes('account') || lower.includes('commerc')) {
+        setSubject('Economics');
+      } else if (lower.includes('law') || lower.includes('polity') || lower.includes('constitut') || lower.includes('histor') || lower.includes('civic')) {
+        setSubject('Civics & Law');
+      } else if (lower.includes('dsa') || lower.includes('data structure') || lower.includes('code') || lower.includes('dbms') || lower.includes('comput')) {
         setSubject('Computer Science');
+      } else if (lower.includes('scienc') || lower.includes('ecosystem') || lower.includes('environ')) {
+        setSubject('General Science');
+      } else {
+        setSubject('General Studies');
       }
     }
     if (!chapter) setChapter('Unit 1');
@@ -448,44 +459,74 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               )}
 
               {/* Metadata Inputs */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-[#4B5563] dark:text-[#A8A8B3]">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g. Data Structures Unit 1"
-                    className="w-full text-xs px-3 py-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-[#F7F8FC] dark:bg-[#19191F] text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
-                  />
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-[#4B5563] dark:text-[#A8A8B3]">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="e.g. Kinematics & Laws of Motion"
+                      className="w-full text-xs px-3 py-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-[#F7F8FC] dark:bg-[#19191F] text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-[#4B5563] dark:text-[#A8A8B3]">
+                      Subject
+                    </label>
+                    <input
+                      type="text"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      placeholder="e.g. Physics, Biology, Economics..."
+                      className="w-full text-xs px-3 py-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-[#F7F8FC] dark:bg-[#19191F] text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-[#4B5563] dark:text-[#A8A8B3]">
+                      Chapter / Unit
+                    </label>
+                    <input
+                      type="text"
+                      value={chapter}
+                      onChange={(e) => setChapter(e.target.value)}
+                      placeholder="e.g. Unit 1: Core Principles"
+                      className="w-full text-xs px-3 py-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-[#F7F8FC] dark:bg-[#19191F] text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-[#4B5563] dark:text-[#A8A8B3]">
-                    Subject
-                  </label>
-                  <input
-                    type="text"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="e.g. Data Structures"
-                    className="w-full text-xs px-3 py-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-[#F7F8FC] dark:bg-[#19191F] text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-[#4B5563] dark:text-[#A8A8B3]">
-                    Chapter / Unit
-                  </label>
-                  <input
-                    type="text"
-                    value={chapter}
-                    onChange={(e) => setChapter(e.target.value)}
-                    placeholder="e.g. Stacks & Queues"
-                    className="w-full text-xs px-3 py-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-[#F7F8FC] dark:bg-[#19191F] text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
-                  />
+                {/* Popular Subject Quick Select */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                  <span className="text-[10px] text-[#8E95A5] dark:text-[#70707B] shrink-0 font-mono">Quick Subject:</span>
+                  {[
+                    'Physics',
+                    'Biology',
+                    'Mathematics',
+                    'Economics',
+                    'Computer Science',
+                    'General Science',
+                    'Civics & Law',
+                    'Chemistry'
+                  ].map((sub) => (
+                    <button
+                      key={sub}
+                      type="button"
+                      onClick={() => setSubject(sub)}
+                      className={`px-2 py-0.5 rounded-md text-[10px] whitespace-nowrap transition-colors cursor-pointer ${
+                        subject === sub
+                          ? 'bg-indigo-600 text-white font-semibold'
+                          : 'bg-[#F1F3F8] dark:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3] hover:text-[#4F46E5] dark:hover:text-[#818CF8]'
+                      }`}
+                    >
+                      {sub}
+                    </button>
+                  ))}
                 </div>
               </div>
             </>

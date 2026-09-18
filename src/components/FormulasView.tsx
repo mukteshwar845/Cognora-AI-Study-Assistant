@@ -179,13 +179,13 @@ export const FormulasView: React.FC<FormulasViewProps> = ({
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] dark:text-[#818CF8] text-xs font-semibold uppercase tracking-wider mb-1 font-mono">
               <Sparkles className="w-3.5 h-3.5" />
-              Formula & Equation Hub
+              Universal Equations & Rules Hub
             </div>
             <h1 className="text-2xl font-bold text-[#111827] dark:text-[#F5F5F7] tracking-tight">
-              All Formulas in One Place
+              Formulas, Equations & Core Rules
             </h1>
             <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3] mt-1 max-w-xl">
-              Consolidated mathematical equations, recurrence relations, complexity bounds, and scientific laws extracted across your study library without hallucinations.
+              Consolidated mathematical formulas, scientific laws, economic elasticity ratios, biological rules, and complexity bounds extracted across your study library without hallucinations.
             </p>
           </div>
 

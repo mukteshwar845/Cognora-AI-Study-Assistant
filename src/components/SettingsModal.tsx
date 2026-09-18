@@ -567,10 +567,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         }
                         className="w-full p-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#19191F] text-xs text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
                       >
-                        <option value="high_school">High School (K-12)</option>
-                        <option value="undergraduate">Undergraduate (Bachelors)</option>
-                        <option value="postgraduate">Postgraduate (Masters/PhD)</option>
-                        <option value="competitive_exam">Competitive Exam Aspirant</option>
+                        <option value="minor_school">🎒 Minor / Middle School (Grades 1-8)</option>
+                        <option value="high_school">🏫 High School (Grades 9-12)</option>
+                        <option value="undergraduate">🎓 Undergraduate (College / Bachelors)</option>
+                        <option value="postgraduate">🏛️ Postgraduate (Masters / PhD)</option>
+                        <option value="competitive_exam">🎯 Competitive Exam (JEE/NEET/SAT/UPSC)</option>
+                        <option value="professional_learner">💼 Professional / Lifelong Learner</option>
                       </select>
                     </div>
 
