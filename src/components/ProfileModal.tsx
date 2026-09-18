@@ -87,185 +87,174 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           <div className="w-12 h-1.5 rounded-full bg-stone-300 dark:bg-white/20" />
         </div>
 
-        {/* Modal Header */}
-        <div className="p-4 sm:p-5 border-b border-[#E2E4E9] dark:border-white/[0.08] flex items-center justify-between shrink-0 bg-stone-50/70 dark:bg-[#16161C]/70">
+        {/* Modal Top Header */}
+        <div className="px-5 py-4 sm:px-6 sm:py-4.5 border-b border-[#E2E4E9] dark:border-white/[0.08] flex items-center justify-between shrink-0 bg-white/90 dark:bg-[#111116]/90 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
               <GraduationCap className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-heading font-bold text-base text-[#111827] dark:text-[#F5F5F7]">
-                  Student Identity & Profile
-                </h2>
-                <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20">
-                  Read Only
-                </span>
-              </div>
-              <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3]">{user.email}</p>
+              <h2 className="font-heading font-bold text-base text-[#111827] dark:text-[#F5F5F7] tracking-tight">
+                Student Identity & Profile
+              </h2>
+              <p className="text-xs text-[#6B7280] dark:text-[#A8A8B3] flex items-center gap-1.5 mt-0.5">
+                <span>{user.email}</span>
+                <span className="w-1 h-1 rounded-full bg-emerald-500" />
+                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Verified Scholar</span>
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {onOpenSettings && (
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onOpenSettings();
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200/80 dark:border-indigo-500/30 transition-all shadow-2xs active:scale-95"
-                title="Edit profile in Settings"
-              >
-                <Settings className="w-3.5 h-3.5" />
-                <span>Edit in Settings</span>
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              className="p-2 rounded-xl text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/[0.06] transition-colors"
-              aria-label="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.12] text-stone-400 hover:text-stone-700 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95"
+            aria-label="Close"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
-        {/* Hero Student Banner (Visual Showcase) */}
-        <div className="p-4 sm:p-5 border-b border-[#E2E4E9] dark:border-white/[0.08] bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-transparent dark:from-indigo-500/10 dark:via-purple-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
+        {/* Hero Student Banner (Executive Academic ID Card) */}
+        <div className="p-5 sm:p-6 border-b border-[#E2E4E9] dark:border-white/[0.08] bg-gradient-to-br from-indigo-50/60 via-purple-50/20 to-transparent dark:from-indigo-950/25 dark:via-purple-950/10 dark:to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shrink-0">
           <div className="flex items-center gap-4">
-            <div
-              className={`w-16 h-16 rounded-2xl bg-gradient-to-tr ${gradClass} text-white flex items-center justify-center font-bold text-xl shadow-md shrink-0 ring-4 ring-white dark:ring-[#16161C]`}
-            >
-              {IconComponent ? (
-                <IconComponent className="w-8 h-8" />
-              ) : (
-                user.name.slice(0, 2).toUpperCase()
-              )}
+            <div className="relative">
+              <div
+                className={`w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-tr ${gradClass} text-white flex items-center justify-center font-bold text-xl sm:text-2xl shadow-lg shrink-0 ring-4 ring-white dark:ring-[#16161C]`}
+              >
+                {IconComponent ? (
+                  <IconComponent className="w-8 h-8 sm:w-9 sm:h-9" />
+                ) : (
+                  user.name.slice(0, 2).toUpperCase()
+                )}
+              </div>
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#111116]" title="Active Account" />
             </div>
 
-            <div>
+            <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-heading font-bold text-lg text-[#111827] dark:text-[#F5F5F7]">
+                <h3 className="font-heading font-bold text-xl text-[#111827] dark:text-[#F5F5F7] tracking-tight">
                   {user.name}
                 </h3>
-                <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-500/30">
+                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-500/30">
                   {user.academicLevel ? (ACADEMIC_LEVEL_LABELS[user.academicLevel] || user.academicLevel) : 'Undergraduate'}
                 </span>
               </div>
-              <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3] mt-0.5">
+              <p className="text-xs font-medium text-[#4B5563] dark:text-[#C4C4CD]">
                 {user.degree || 'Computer Science'} {user.semester ? `• ${user.semester}` : ''}
               </p>
               {user.institution && (
-                <p className="text-[11px] text-stone-500 font-mono mt-0.5 flex items-center gap-1">
-                  <GraduationCap className="w-3 h-3 inline text-indigo-500" />
-                  {user.institution}
+                <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] flex items-center gap-1.5 font-medium">
+                  <GraduationCap className="w-3.5 h-3.5 text-indigo-500" />
+                  <span>{user.institution}</span>
                 </p>
               )}
             </div>
           </div>
 
-          {/* Quick Metrics */}
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-around sm:justify-end bg-white/80 dark:bg-[#19191F]/80 p-2.5 rounded-2xl border border-stone-200/60 dark:border-white/[0.08] shadow-2xs">
-            <div className="text-center px-2">
-              <div className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold">Streak</div>
-              <div className="font-bold text-amber-500 text-xs sm:text-sm flex items-center justify-center gap-1">
-                <Flame className="w-3.5 h-3.5 fill-current" /> {user.streakDays}d
+          {/* Quick Metrics Floating Glass Pill */}
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-around sm:justify-end bg-white/90 dark:bg-[#181820]/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-stone-200/70 dark:border-white/[0.08] shadow-xs">
+            <div className="text-center px-1 sm:px-2">
+              <div className="text-[9px] text-[#8E95A5] dark:text-[#70707B] uppercase tracking-wider font-mono font-bold">Streak</div>
+              <div className="font-bold text-amber-500 text-sm flex items-center justify-center gap-1 mt-0.5">
+                <Flame className="w-4 h-4 fill-current" /> {user.streakDays}d
               </div>
             </div>
-            <div className="w-px h-6 bg-stone-200 dark:bg-white/[0.08]" />
-            <div className="text-center px-2">
-              <div className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold">Mastery</div>
-              <div className="font-bold text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm">
+            <div className="w-px h-7 bg-stone-200 dark:bg-white/[0.08]" />
+            <div className="text-center px-1 sm:px-2">
+              <div className="text-[9px] text-[#8E95A5] dark:text-[#70707B] uppercase tracking-wider font-mono font-bold">Mastery</div>
+              <div className="font-bold text-indigo-600 dark:text-indigo-400 text-sm mt-0.5">
                 {user.averageQuizScore ?? user.quizAverage ?? 85}%
               </div>
             </div>
-            <div className="w-px h-6 bg-stone-200 dark:bg-white/[0.08]" />
-            <div className="text-center px-2">
-              <div className="text-[10px] text-stone-500 uppercase tracking-wider font-semibold">Weekly</div>
-              <div className="font-bold text-[#111827] dark:text-[#F5F5F7] text-xs sm:text-sm">
-                {user.weeklyHoursSpent || 12}h
+            <div className="w-px h-7 bg-stone-200 dark:bg-white/[0.08]" />
+            <div className="text-center px-1 sm:px-2">
+              <div className="text-[9px] text-[#8E95A5] dark:text-[#70707B] uppercase tracking-wider font-mono font-bold">Weekly</div>
+              <div className="font-bold text-[#111827] dark:text-[#F5F5F7] text-sm mt-0.5">
+                {user.weeklyHoursSpent || 12.6}h
               </div>
             </div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="border-b border-[#E2E4E9] dark:border-white/[0.08] px-4 flex gap-2 bg-stone-50/60 dark:bg-[#131319]/60 shrink-0 overflow-x-auto no-scrollbar">
+        <div className="border-b border-[#E2E4E9] dark:border-white/[0.08] px-5 sm:px-6 flex gap-1 bg-[#FAFAFC] dark:bg-[#14141A] shrink-0 overflow-x-auto no-scrollbar">
           {[
             { id: 'overview', label: 'Overview & Bio' },
             { id: 'academics', label: `Coursework (${subjects.length})` },
             { id: 'exams', label: `Upcoming Exams (${exams.length})` },
             { id: 'topics', label: `Focus & Mastery (${weakTopics.length + strongTopics.length})` }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-all whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`py-3 px-3.5 text-xs font-semibold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+                  isActive
+                    ? 'border-indigo-600 dark:border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                    : 'border-transparent text-[#6B7280] dark:text-[#A8A8B3] hover:text-[#111827] dark:hover:text-white'
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Read-Only Modal Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+        {/* Modal Body */}
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
           {/* TAB 1: OVERVIEW & BIO */}
           {activeTab === 'overview' && (
             <div className="space-y-4 animate-in fade-in duration-150">
               {/* Study Motto / Bio */}
-              <div className="p-4 rounded-2xl bg-stone-50 dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.08]">
-                <div className="text-xs font-semibold text-[#8E95A5] dark:text-[#70707B] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <div className="p-4 rounded-2xl bg-[#F8F9FC] dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.06] border-l-4 border-l-indigo-500 shadow-2xs">
+                <div className="text-[10px] font-bold text-[#6B7280] dark:text-[#8E95A5] uppercase tracking-wider mb-1.5 flex items-center gap-1.5 font-mono">
                   <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
                   Study Motto & Academic Mission
                 </div>
-                <p className="text-xs sm:text-sm text-[#111827] dark:text-[#F5F5F7] italic leading-relaxed">
+                <p className="text-xs sm:text-sm text-[#111827] dark:text-[#F5F5F7] font-medium italic leading-relaxed">
                   "{user.bio || 'Master complex concepts with structured AI learning, active recall, and spaced repetition.'}"
                 </p>
               </div>
 
               {/* Academic Highlights Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.08] space-y-1">
-                  <div className="text-[11px] text-stone-500 font-medium">Institution / University</div>
-                  <div className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F7] truncate">
+                <div className="p-4 rounded-2xl bg-[#F8F9FC] dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.06] space-y-1">
+                  <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B] uppercase tracking-wider font-mono font-bold">Institution / University</div>
+                  <div className="text-xs sm:text-sm font-bold text-[#111827] dark:text-[#F5F5F7] truncate">
                     {user.institution || 'Cognora Academic Member'}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.08] space-y-1">
-                  <div className="text-[11px] text-stone-500 font-medium">Degree & Major</div>
-                  <div className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F7] truncate">
+                <div className="p-4 rounded-2xl bg-[#F8F9FC] dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.06] space-y-1">
+                  <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B] uppercase tracking-wider font-mono font-bold">Degree & Major</div>
+                  <div className="text-xs sm:text-sm font-bold text-[#111827] dark:text-[#F5F5F7] truncate">
                     {user.degree || 'Computer Science & Engineering'}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.08] space-y-1">
-                  <div className="text-[11px] text-stone-500 font-medium">Academic Level</div>
-                  <div className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F7]">
+                <div className="p-4 rounded-2xl bg-[#F8F9FC] dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.06] space-y-1">
+                  <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B] uppercase tracking-wider font-mono font-bold">Academic Level</div>
+                  <div className="text-xs sm:text-sm font-bold text-[#111827] dark:text-[#F5F5F7] flex items-center gap-1.5">
                     {user.academicLevel ? (ACADEMIC_LEVEL_LABELS[user.academicLevel] || user.academicLevel) : 'Undergraduate'}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.08] space-y-1">
-                  <div className="text-[11px] text-stone-500 font-medium">Semester / Term</div>
-                  <div className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F7]">
+                <div className="p-4 rounded-2xl bg-[#F8F9FC] dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.06] space-y-1">
+                  <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B] uppercase tracking-wider font-mono font-bold">Semester / Term</div>
+                  <div className="text-xs sm:text-sm font-bold text-[#111827] dark:text-[#F5F5F7]">
                     {user.semester || 'Semester 5'}
                   </div>
                 </div>
 
                 {user.targetGpa && (
-                  <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.08] space-y-1 sm:col-span-2">
-                    <div className="text-[11px] text-stone-500 font-medium flex items-center gap-1">
+                  <div className="p-4 rounded-2xl bg-[#F8F9FC] dark:bg-[#16161C] border border-[#E2E4E9] dark:border-white/[0.06] space-y-1 sm:col-span-2">
+                    <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B] uppercase tracking-wider font-mono font-bold flex items-center gap-1.5">
                       <Target className="w-3.5 h-3.5 text-indigo-500" />
                       Target GPA / Performance Goal
                     </div>
-                    <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 font-mono">
+                    <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400 font-mono">
                       {user.targetGpa}
                     </div>
                   </div>
@@ -273,24 +262,24 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               </div>
 
               {/* Study Stats Summary */}
-              <div className="grid grid-cols-3 gap-2.5 pt-1">
-                <div className="p-3 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-500/20 text-center">
-                  <div className="text-[10px] text-stone-500">Study Time</div>
-                  <div className="text-xs sm:text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">
+              <div className="grid grid-cols-3 gap-3 pt-1">
+                <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/25 border border-indigo-100 dark:border-indigo-500/20 text-center">
+                  <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B] font-mono uppercase tracking-wider font-bold">Study Time</div>
+                  <div className="text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">
                     {Math.round((user.totalStudyMinutes || 0) / 60)} hrs
                   </div>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-500/20 text-center">
-                  <div className="text-[10px] text-stone-500">Questions Solved</div>
-                  <div className="text-xs sm:text-sm font-bold text-purple-600 dark:text-purple-400 mt-0.5">
-                    {user.questionsSolved || 0}
+                <div className="p-4 rounded-2xl bg-purple-50/60 dark:bg-purple-950/25 border border-purple-100 dark:border-purple-500/20 text-center">
+                  <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B] font-mono uppercase tracking-wider font-bold">Questions Solved</div>
+                  <div className="text-sm sm:text-base font-bold text-purple-600 dark:text-purple-400 mt-0.5">
+                    {user.questionsSolved || 142}
                   </div>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-500/20 text-center">
-                  <div className="text-[10px] text-stone-500">Readiness Score</div>
-                  <div className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/25 border border-emerald-100 dark:border-emerald-500/20 text-center">
+                  <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B] font-mono uppercase tracking-wider font-bold">Readiness Score</div>
+                  <div className="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
                     {user.examReadinessScore ?? 84}%
                   </div>
                 </div>
@@ -484,34 +473,30 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           )}
         </div>
 
-        {/* Read-Only Modal Footer */}
-        <div className="p-4 border-t border-[#E2E4E9] dark:border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3 bg-stone-50/50 dark:bg-[#16161C]/50">
-          <p className="text-[11px] text-[#4B5563] dark:text-[#A8A8B3] text-center sm:text-left">
-            Profile info is read-only here. To modify your details, courses, or avatar, visit <span className="font-semibold text-indigo-600 dark:text-indigo-400">Settings</span>.
-          </p>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+        {/* Modal Footer */}
+        <div className="px-5 py-3.5 sm:px-6 sm:py-4 border-t border-[#E2E4E9] dark:border-white/[0.08] flex items-center justify-between gap-3 bg-stone-50/60 dark:bg-[#141419]/70 shrink-0">
+          <p className="text-[11px] text-[#6B7280] dark:text-[#8E95A5]">
+            Manage credentials, courses, and GPA targets in{' '}
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-medium text-[#4B5563] dark:text-[#A8A8B3] hover:text-[#111827] dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/[0.04] transition-colors"
+              onClick={() => {
+                onClose();
+                onOpenSettings?.();
+              }}
+              className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline cursor-pointer"
             >
-              Close
+              Settings
             </button>
-            {onOpenSettings && (
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onOpenSettings();
-                }}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
-              >
-                <Settings className="w-3.5 h-3.5" />
-                <span>Edit in Settings</span>
-              </button>
-            )}
-          </div>
+            .
+          </p>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#111827] dark:bg-white text-white dark:text-[#111827] hover:bg-stone-800 dark:hover:bg-stone-200 transition-all shadow-2xs active:scale-95 cursor-pointer"
+          >
+            Done
+          </button>
         </div>
       </div>
     </div>
