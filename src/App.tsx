@@ -695,6 +695,14 @@ export default function App() {
           setSettingsTab('profile');
           setIsSettingsOpen(true);
         }}
+        onNavigateTab={(tab) => {
+          setIsProfileOpen(false);
+          if (tab !== 'workspace') setIsFocusMode(false);
+          setCurrentTab(tab);
+          if (tab === 'workspace' && !activeMaterial && materials.length > 0) {
+            setActiveMaterial(materials[0]);
+          }
+        }}
       />
 
       {/* Comprehensive Settings & Study Hub Modal */}
