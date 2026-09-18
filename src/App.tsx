@@ -383,9 +383,6 @@ export default function App() {
             user={user}
             darkMode={darkMode}
             onToggleDarkMode={handleToggleDarkMode}
-            themePreference={themePreference}
-            resolvedTheme={resolvedTheme}
-            onSelectThemePreference={setThemePreference}
           />
         )}
 

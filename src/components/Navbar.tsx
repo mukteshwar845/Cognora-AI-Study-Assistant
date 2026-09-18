@@ -138,25 +138,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         )}
 
-        {/* Theme Switcher Component (hidden on mobile, accessible via drawer/profile) */}
+        {/* Theme Toggle Button */}
         <div className="hidden sm:block">
-          {onSelectThemePreference ? (
-            <ThemeSwitcher
-              preference={themePreference}
-              resolvedTheme={resolvedTheme}
-              onSelectPreference={onSelectThemePreference}
-              variant="dropdown"
-            />
-          ) : (
-            <button
-              onClick={onToggleDarkMode}
-              className="p-1.5 rounded-lg text-[#4B5563] hover:text-[#111827] dark:text-[#A8A8B3] dark:hover:text-white hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] transition-colors"
-              title={darkMode ? 'Switch to Light' : 'Switch to Dark'}
-              aria-label="Toggle Theme"
-            >
-              {darkMode ? '🌙' : '☀️'}
-            </button>
-          )}
+          <ThemeSwitcher
+            preference={themePreference}
+            resolvedTheme={resolvedTheme}
+            onSelectPreference={onSelectThemePreference ?? (() => onToggleDarkMode())}
+          />
         </div>
 
         {/* Notifications */}

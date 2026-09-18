@@ -15,8 +15,7 @@ import {
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { CognoraLogo } from './CognoraLogo';
-import { ThemeSwitcher } from './ThemeSwitcher';
-import { ThemePreference, ResolvedTheme } from '../lib/theme';
+
 
 interface SidebarProps {
   currentTab: string;
@@ -29,9 +28,6 @@ interface SidebarProps {
   user: UserProfile;
   darkMode: boolean;
   onToggleDarkMode: () => void;
-  themePreference?: ThemePreference;
-  resolvedTheme?: ResolvedTheme;
-  onSelectThemePreference?: (pref: ThemePreference) => void;
 }
 
 interface NavSection {
@@ -56,9 +52,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   user,
   darkMode,
   onToggleDarkMode,
-  themePreference = darkMode ? 'dark' : 'light',
-  resolvedTheme = darkMode ? 'dark' : 'light',
-  onSelectThemePreference
 }) => {
   const sections: NavSection[] = [
     {
