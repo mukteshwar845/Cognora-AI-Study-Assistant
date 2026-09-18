@@ -29,7 +29,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'groups' | 'discussions'>('discussions');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSubject] = useState<string>('all');
+  const [selectedSubject, setSelectedSubject] = useState<string>('all');
 
   // Active expanded thread for replies
   const [expandedThreadId, setExpandedThreadId] = useState<string | null>(null);
@@ -40,6 +40,8 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newSubject, setNewSubject] = useState('Data Structures');
+
+  const uniqueSubjects = ['all', ...Array.from(new Set(discussions.map((d) => d.subject).filter(Boolean)))];
 
   const filteredDiscussions = discussions.filter((t) => {
     const matchSubject = selectedSubject === 'all' || t.subject === selectedSubject;
@@ -73,17 +75,17 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] dark:text-[#818CF8] text-xs font-semibold uppercase tracking-wider mb-1 font-mono">
               <Users className="w-3.5 h-3.5" />
-              Collaborative Learning
+              Community & Collaboration
             </div>
-            <h1 className="font-heading font-bold text-2xl text-[#111827] dark:text-[#F5F5F7]">
-              Peer Study & Discussion Forum
+            <h1 className="text-2xl font-bold text-[#111827] dark:text-[#F5F5F7] tracking-tight">
+              Peer Learning & Discussions
             </h1>
-            <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3]">
-              Share doubts, exchange notes, and prepare for university exams with fellow students.
+            <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3] mt-1 max-w-lg">
+              Collaborate on complex exam topics, share insights, and join focused study groups with fellow students.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 bg-[#F7F8FC] dark:bg-[#19191F] p-1.5 rounded-2xl border border-[#E2E4E9] dark:border-white/[0.08] self-start sm:self-center">
             <button
               onClick={() => setActiveTab('discussions')}
               className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
@@ -109,25 +111,45 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
 
         {/* Filter bar for discussions */}
         {activeTab === 'discussions' && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[#E2E4E9] dark:border-white/[0.08]">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-[#8E95A5] dark:text-[#70707B]" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search doubts, topics or questions..."
-                className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-[#F7F8FC] dark:bg-[#19191F] text-[#111827] dark:text-[#F5F5F7] focus:outline-hidden focus:border-[#4F46E5]"
-              />
+          <div className="space-y-3 pt-3 border-t border-[#E2E4E9] dark:border-white/[0.08]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-[#8E95A5] dark:text-[#70707B]" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search doubts, topics or questions..."
+                  className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-[#F7F8FC] dark:bg-[#19191F] text-[#111827] dark:text-[#F5F5F7] focus:outline-hidden focus:border-[#4F46E5]"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white flex items-center gap-1.5 shadow-xs active:scale-95 transition-all"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Start Discussion
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white flex items-center gap-1.5 shadow-xs active:scale-95 transition-all"
-              >
-                <Plus className="w-3.5 h-3.5" /> Start Discussion
-              </button>
+            {/* Subject Filter Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+              <span className="text-[11px] font-medium text-stone-500 shrink-0">Filter:</span>
+              {uniqueSubjects.map((sub) => (
+                <button
+                  key={sub}
+                  onClick={() => setSelectedSubject(sub)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium capitalize transition-all shrink-0 ${
+                    selectedSubject === sub
+                      ? 'bg-indigo-600 text-white shadow-2xs font-semibold'
+                      : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'
+                  }`}
+                >
+                  {sub === 'all' ? 'All Subjects' : sub}
+                </button>
+              ))}
             </div>
           </div>
         )}

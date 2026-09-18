@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   StudyMaterial,
   QuizQuestion,
-  ExamAttempt
+  ExamAttempt,
+  AppSettings
 } from '../types';
 import {
   Clock,
@@ -22,6 +23,7 @@ interface ExamModeViewProps {
   onFinishExam: (attempt: ExamAttempt) => void;
   onExit: () => void;
   onReviseWithAI: (topic: string) => void;
+  settings?: AppSettings;
 }
 
 export const ExamModeView: React.FC<ExamModeViewProps> = ({
@@ -29,7 +31,8 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
   allMaterials,
   onFinishExam,
   onExit,
-  onReviseWithAI
+  onReviseWithAI,
+  settings
 }) => {
   // Config
   const [examModeType, setExamModeType] = useState<'practice' | 'real'>('practice');
@@ -119,7 +122,7 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
     }
   };
 
-  const calculateResults = () => {
+  const calculateResults = async () => {
     setIsAnalyzing(true);
     let correct = 0;
     let incorrect = 0;
@@ -146,8 +149,10 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
     });
 
     const total = examQuestions.length;
+    const marksPerQuestion = 10;
+    const totalMarks = total * marksPerQuestion;
+    const score = correct * marksPerQuestion;
     const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
-    const score = accuracy;
     const timeTaken = Math.max(1, Math.round((totalDurationSeconds - timeLeft) / 60));
 
     const weakAreas = Object.keys(topicBreakdown).filter((top) => {
@@ -160,6 +165,49 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
       return pct >= 70;
     });
 
+    let aiFeedbackReport = {
+      strongAreas: strongAreas.length > 0 ? strongAreas : ['Core theoretical concepts and definitions'],
+      weakAreas: weakAreas.length > 0 ? weakAreas : ['Boundary conditions & time complexity corner cases'],
+      revisionAdvice: accuracy >= 80
+        ? 'Outstanding mastery of this unit. Focus on edge cases, multi-step problem solving, and timed speed.'
+        : 'Focus on review flashcards and active recall quizzes for flagged weak areas before re-testing.'
+    };
+
+    // Live AI exam diagnostic feedback
+    try {
+      const res = await fetch('/api/ai/exam-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: material.subject,
+          materialTitle: material.title,
+          score,
+          totalMarks,
+          results: examQuestions.map((q, idx) => ({
+            question: q.question,
+            topic: q.topic,
+            studentAnswer: answers[idx] ?? 'Unanswered',
+            correctAnswer: q.correctAnswer,
+            isCorrect: answers[idx] === q.correctAnswer
+          })),
+          apiKey: settings?.geminiApiKey,
+          model: settings?.aiModel
+        })
+      });
+      if (res.ok) {
+        const fb = await res.json();
+        if (fb.strongAreas || fb.weakAreas || fb.recommendedPractice) {
+          aiFeedbackReport = {
+            strongAreas: Array.isArray(fb.strongAreas) && fb.strongAreas.length > 0 ? fb.strongAreas : aiFeedbackReport.strongAreas,
+            weakAreas: Array.isArray(fb.weakAreas) && fb.weakAreas.length > 0 ? fb.weakAreas : aiFeedbackReport.weakAreas,
+            revisionAdvice: fb.recommendedPractice || fb.revisionAdvice || aiFeedbackReport.revisionAdvice
+          };
+        }
+      }
+    } catch {
+      // Graceful local diagnostic fallback
+    }
+
     const attempt: ExamAttempt = {
       id: `attempt_${Date.now()}`,
       examTitle: `${material.title} Mock Exam`,
@@ -167,28 +215,20 @@ export const ExamModeView: React.FC<ExamModeViewProps> = ({
       subject: material.subject,
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       score,
-      totalMarks: total * 4,
+      totalMarks,
       accuracy,
       totalQuestions: total,
       correctCount: correct,
       incorrectCount: incorrect,
       unansweredCount: unanswered,
       timeTakenMinutes: timeTaken,
-      aiFeedback: {
-        strongAreas: strongAreas.length > 0 ? strongAreas : ['Core theoretical concepts'],
-        weakAreas: weakAreas.length > 0 ? weakAreas : ['Time complexity corner cases'],
-        revisionAdvice: accuracy >= 80
-          ? 'Outstanding mastery of this unit. Focus on edge cases and timed speed.'
-          : 'Focus on review flashcards and active recall quizzes for flagged weak areas before testing again.'
-      }
+      aiFeedback: aiFeedbackReport
     };
 
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      setIsSubmitModalOpen(false);
-      setExamResult(attempt);
-      onFinishExam(attempt);
-    }, 600);
+    setIsAnalyzing(false);
+    setIsSubmitModalOpen(false);
+    setExamResult(attempt);
+    onFinishExam(attempt);
   };
 
   // 1. Exam Configuration Intro Screen

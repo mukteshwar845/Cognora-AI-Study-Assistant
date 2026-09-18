@@ -16,13 +16,26 @@ export interface UpcomingExamItem {
   targetScore?: number;
 }
 
+export type AcademicLevel = 'high_school' | 'undergraduate' | 'postgraduate' | 'competitive_exam';
+export type GradingScale = 'percentage' | 'gpa10' | 'gpa4';
+export type AITutorPersona = 'supportive' | 'socratic' | 'strict' | 'concise';
+export type SpacedRepetitionSpeed = 'relaxed' | 'standard' | 'cram';
+export type AccentColor = 'indigo' | 'violet' | 'emerald' | 'amber' | 'rose' | 'cyan';
+
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
+  institution?: string;
+  bio?: string;
   avatarUrl?: string;
+  avatarColor?: string; // gradient preset class
+  avatarIcon?: string;  // icon key: 'sparkles' | 'graduation' | 'brain' | 'rocket' | 'code' | 'atom'
   degree?: string;
   semester?: string;
+  graduationYear?: string;
+  targetGpa?: string;
+  academicLevel?: AcademicLevel;
   streakDays: number;
   weekActivity: boolean[]; // 7 days (Mon-Sun)
   totalStudyMinutes: number;
@@ -31,6 +44,7 @@ export interface UserProfile {
   quizzesAttempted?: number;
   quizAverage: number;
   averageQuizScore?: number;
+  examReadinessScore?: number;
   totalMaterialsUploaded?: number;
   subjectsEnrolled?: string[];
   upcomingExams?: UpcomingExamItem[];
@@ -42,6 +56,35 @@ export interface UserProfile {
     progress: number; // 0-100
     color: string;
   }[];
+}
+
+export interface AppSettings {
+  // Academic & Study Targets
+  dailyStudyGoalMinutes: number;
+  weeklyStudyGoalHours: number;
+  gradingScale: GradingScale;
+  spacedRepetitionSpeed: SpacedRepetitionSpeed;
+
+  // AI Tutor & Intelligence
+  defaultAnswerMode: AnswerMode;
+  defaultQuizDifficulty: 'easy' | 'medium' | 'hard';
+  aiTutorPersona: AITutorPersona;
+  customAiDirectives: string;
+  geminiApiKey?: string;
+  aiModel: 'gemini-2.5-flash' | 'gemini-3.8-flash' | 'gemini-2.5-pro';
+
+  // Notifications & Alerts
+  dailyReminderEnabled: boolean;
+  dailyReminderTime: string;
+  examAlertsEnabled: boolean;
+  streakSaverEnabled: boolean;
+  soundEffectsEnabled: boolean;
+  confettiEnabled: boolean;
+
+  // Appearance & UI
+  themePreference: 'light' | 'dark' | 'system';
+  accentColor: AccentColor;
+  layoutDensity: 'comfortable' | 'compact';
 }
 
 export interface FormulaItem {
@@ -93,6 +136,17 @@ export interface QuizQuestion {
   topic: string;
 }
 
+export interface ExamQuestionItem {
+  id: string;
+  question: string;
+  answer: string;
+  marks?: number;
+  examType?: string;
+  type?: 'short' | 'long' | 'conceptual' | 'numerical';
+  importance?: 'critical' | 'high' | 'medium';
+  expectedPoints?: string[];
+}
+
 export interface StudyMaterial {
   id: string;
   title: string;
@@ -122,13 +176,7 @@ export interface StudyMaterial {
   formulas: FormulaItem[];
   hasFormulas: boolean;
   definitions: DefinitionItem[];
-  questions: {
-    id: string;
-    question: string;
-    answer: string;
-    marks?: number;
-    examType?: string;
-  }[];
+  questions: ExamQuestionItem[];
   flashcards: Flashcard[];
   quizzes: QuizQuestion[];
 }
@@ -158,6 +206,7 @@ export interface ExamAttempt {
   totalMarks: number;
   totalQuestions?: number;
   accuracy: number;
+  percentage?: number;
   timeTakenMinutes?: number;
   timeTakenSeconds?: number;
   date: string;

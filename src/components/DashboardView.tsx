@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import {
   UserProfile,
   StudyMaterial,
-  StudyPlanSession
+  StudyPlanSession,
+  AppSettings
 } from '../types';
 import {
   UploadCloud,
@@ -20,11 +21,13 @@ import {
   Circle,
   Layers,
   FileText,
-  ArrowUpRight
+  ArrowUpRight,
+  Settings
 } from 'lucide-react';
 
 interface DashboardViewProps {
   user: UserProfile;
+  settings?: AppSettings;
   materials: StudyMaterial[];
   studyPlan: StudyPlanSession[];
   onOpenUpload: () => void;
@@ -32,22 +35,39 @@ interface DashboardViewProps {
   onStartExam: (material: StudyMaterial) => void;
   onNavigateTab: (tabId: string) => void;
   onTogglePlanSession: (id: string) => void;
+  onOpenSettings?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   user,
+  settings,
   materials,
   studyPlan,
   onOpenUpload,
   onOpenMaterial,
   onStartExam,
   onNavigateTab,
-  onTogglePlanSession
+  onTogglePlanSession,
+  onOpenSettings
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const primaryMaterial = materials[0];
   const upcomingExams = user.upcomingExams || user.targetExams || [];
   const primaryExam = upcomingExams[0];
+
+  // Dynamic daily study target derived from settings
+  const targetMinutes = settings?.dailyStudyGoalMinutes || 180;
+  const studiedMinutes = Math.min(targetMinutes, Math.round(targetMinutes * 0.75));
+  const progressPercent = Math.min(100, Math.round((studiedMinutes / targetMinutes) * 100));
+
+  const formatMins = (mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h === 0) return `${m}m`;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  };
+  const studiedFormatted = formatMins(studiedMinutes);
+  const targetFormatted = formatMins(targetMinutes);
 
   // Derive time-of-day greeting
   const getGreeting = () => {
@@ -148,23 +168,36 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* Right: Compact Today's Progress Card */}
           <div className="lg:w-64 p-4 rounded-xl bg-white/80 dark:bg-white/[0.05] border border-indigo-100/90 dark:border-white/[0.08] backdrop-blur-xs space-y-2.5 shrink-0 shadow-2xs">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#8E95A5] dark:text-[#70707B] font-mono">
-                TODAY'S PROGRESS
-              </span>
-              <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs">80%</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#8E95A5] dark:text-[#70707B] font-mono">
+                  TODAY'S PROGRESS
+                </span>
+                {onOpenSettings && (
+                  <button
+                    onClick={onOpenSettings}
+                    title="Change daily goal in Settings"
+                    className="p-0.5 text-stone-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                  >
+                    <Settings className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+              <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs">{progressPercent}%</span>
             </div>
 
             {/* Visual Progress Bar */}
             <div className="w-full h-2 rounded-full bg-stone-200 dark:bg-white/[0.08] overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-emerald-500 dark:to-emerald-400 transition-all duration-500"
-                style={{ width: '80%' }}
+                style={{ width: `${progressPercent}%` }}
               />
             </div>
 
             <div className="flex items-center justify-between text-xs text-[#4B5563] dark:text-[#A8A8B3]">
               <span className="text-[#8E95A5] dark:text-[#70707B]">Time studied:</span>
-              <span className="font-mono font-medium">2h 15m / 3h target</span>
+              <span className="font-mono font-medium">
+                {studiedFormatted} / {targetFormatted} target
+              </span>
             </div>
           </div>
         </div>
@@ -683,7 +716,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <h3 className="font-heading font-bold text-sm sm:text-base text-[#111827] dark:text-[#F5F5F7]">
               Subject Exam Readiness
             </h3>
-            <span className="text-[11px] text-[#8E95A5] dark:text-[#70707B] font-mono">Target: 85%+</span>
+            <span className="text-[11px] text-[#8E95A5] dark:text-[#70707B] font-mono">
+              {user.targetGpa ? `Target GPA: ${user.targetGpa}` : 'Target: 85%+'}
+            </span>
           </div>
 
           <div className="space-y-3.5">
@@ -718,8 +753,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 font-mono">
                 STRONGEST TOPIC
               </div>
-              <div className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F7] mt-0.5">
-                Arrays — 94%
+              <div className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F7] mt-0.5 truncate">
+                {user.strongTopics?.[0] ? `${user.strongTopics[0]} — 94%` : 'Arrays — 94%'}
               </div>
             </div>
 
@@ -727,8 +762,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 font-mono">
                 NEEDS ATTENTION
               </div>
-              <div className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F7] mt-0.5">
-                Trees & Graphs — 58%
+              <div className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F7] mt-0.5 truncate">
+                {user.weakTopics?.[0] ? `${user.weakTopics[0]} — 58%` : 'Trees & Graphs — 58%'}
               </div>
             </div>
           </div>
@@ -744,17 +779,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <Sparkles className="w-3.5 h-3.5" />
               </div>
               <div>
-                <div className="font-heading font-bold text-xs uppercase tracking-wider text-indigo-700 dark:text-indigo-300 font-mono">
-                  ✨ COGNORA AI COACH
+                <div className="font-heading font-bold text-xs uppercase tracking-wider text-indigo-700 dark:text-indigo-300 font-mono flex items-center gap-1.5">
+                  <span>✨ COGNORA AI COACH</span>
+                  {settings?.aiTutorPersona && (
+                    <span className="text-[9px] font-normal px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 capitalize">
+                      {settings.aiTutorPersona}
+                    </span>
+                  )}
                 </div>
                 <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B]">Diagnostic feedback</div>
               </div>
             </div>
 
             <div className="p-3.5 rounded-xl bg-white/80 dark:bg-white/[0.04] border border-indigo-100 dark:border-white/[0.06] text-xs text-[#111827] dark:text-[#F5F5F7] leading-relaxed italic">
-              "Your quiz accuracy in <span className="font-semibold text-emerald-600 dark:text-emerald-400 not-italic">Arrays</span> has improved by 14% this week.
+              "Your quiz accuracy in <span className="font-semibold text-emerald-600 dark:text-emerald-400 not-italic">{user.strongTopics?.[0] || 'Arrays'}</span> has improved this week.
               <br /><br />
-              You should revise <span className="font-semibold text-amber-600 dark:text-amber-400 not-italic">Trees & Graphs</span> next — your recent accuracy is 58%."
+              You should revise <span className="font-semibold text-amber-600 dark:text-amber-400 not-italic">{user.weakTopics?.[0] || 'Trees & Graphs'}</span> next."
             </div>
           </div>
 

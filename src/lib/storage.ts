@@ -5,7 +5,8 @@ import {
   StudyGroup,
   DiscussionThread,
   NotificationItem,
-  ExamAttempt
+  ExamAttempt,
+  AppSettings
 } from '../types';
 import {
   initialUser,
@@ -14,7 +15,8 @@ import {
   initialStudyGroups,
   initialDiscussions,
   initialNotifications,
-  initialExamHistory
+  initialExamHistory,
+  initialAppSettings
 } from '../data/mockData';
 
 const STORAGE_KEYS = {
@@ -26,6 +28,7 @@ const STORAGE_KEYS = {
   NOTIFICATIONS: 'ai_study_notifications_v1',
   EXAM_HISTORY: 'ai_study_exam_history_v1',
   THEME: 'ai_study_theme_v1',
+  SETTINGS: 'ai_study_settings_v1',
 };
 
 export function loadUser(): UserProfile {
@@ -155,4 +158,109 @@ export function saveUserProfile(user: UserProfile) {
   saveUser(user);
 }
 
+export function loadAppSettings(): AppSettings {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+    if (!saved) return initialAppSettings;
+    return { ...initialAppSettings, ...JSON.parse(saved) };
+  } catch {
+    return initialAppSettings;
+  }
+}
+
+export function saveAppSettings(settings: AppSettings) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+  } catch (e) {
+    console.warn('Settings save failed:', e);
+  }
+}
+
+export interface BackupData {
+  version: string;
+  exportDate: string;
+  user: UserProfile;
+  settings: AppSettings;
+  materials: StudyMaterial[];
+  studyPlan: StudyPlanSession[];
+  examHistory: ExamAttempt[];
+  studyGroups: StudyGroup[];
+  discussions: DiscussionThread[];
+  notifications: NotificationItem[];
+}
+
+export function exportAllStudyData(): string {
+  const data: BackupData = {
+    version: '1.0.0',
+    exportDate: new Date().toISOString(),
+    user: loadUserProfile(),
+    settings: loadAppSettings(),
+    materials: loadMaterials(),
+    studyPlan: loadStudyPlan(),
+    examHistory: loadExamHistory(),
+    studyGroups: loadStudyGroups(),
+    discussions: loadDiscussions(),
+    notifications: loadNotifications()
+  };
+  return JSON.stringify(data, null, 2);
+}
+
+export function importStudyData(jsonString: string): { success: boolean; message: string } {
+  try {
+    const parsed = JSON.parse(jsonString);
+    if (!parsed || typeof parsed !== 'object') {
+      return { success: false, message: 'Invalid JSON backup format.' };
+    }
+    if (parsed.user) saveUserProfile(parsed.user);
+    if (parsed.settings) saveAppSettings(parsed.settings);
+    if (Array.isArray(parsed.materials)) saveMaterials(parsed.materials);
+    if (Array.isArray(parsed.studyPlan)) saveStudyPlan(parsed.studyPlan);
+    if (Array.isArray(parsed.examHistory)) saveExamHistory(parsed.examHistory);
+    if (Array.isArray(parsed.studyGroups)) saveStudyGroups(parsed.studyGroups);
+    if (Array.isArray(parsed.discussions)) saveDiscussions(parsed.discussions);
+    if (Array.isArray(parsed.notifications)) saveNotifications(parsed.notifications);
+    return { success: true, message: 'Backup successfully restored!' };
+  } catch (e: any) {
+    return { success: false, message: e?.message || 'Failed to parse backup file.' };
+  }
+}
+
+export function resetStudyProgress(): void {
+  try {
+    // Clear exam history
+    saveExamHistory([]);
+    // Reset flashcard statuses in all materials
+    const materials = loadMaterials();
+    const updatedMaterials = materials.map((m) => ({
+      ...m,
+      flashcards: m.flashcards.map((f) => ({ ...f, status: 'new' as const, isDifficult: false }))
+    }));
+    saveMaterials(updatedMaterials);
+  } catch (e) {
+    console.warn('Reset progress failed:', e);
+  }
+}
+
+export function calculateStorageUsage(): { usedBytes: number; usedFormatted: string; percentEstimated: number } {
+  try {
+    let totalBytes = 0;
+    for (const key in localStorage) {
+      if (Object.prototype.hasOwnProperty.call(localStorage, key) && key.startsWith('ai_study_')) {
+        const val = localStorage.getItem(key) || '';
+        totalBytes += (key.length + val.length) * 2; // UTF-16 approx 2 bytes per char
+      }
+    }
+    const maxBytes = 5 * 1024 * 1024; // typical browser 5MB
+    const kb = (totalBytes / 1024).toFixed(1);
+    return {
+      usedBytes: totalBytes,
+      usedFormatted: `${kb} KB`,
+      percentEstimated: Math.min(100, Math.round((totalBytes / maxBytes) * 100))
+    };
+  } catch {
+    return { usedBytes: 0, usedFormatted: '0 KB', percentEstimated: 0 };
+  }
+}
+
 export const DEFAULT_MATERIALS = initialMaterials;
+

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudyPlanSession } from '../types';
+import { StudyPlanSession, AppSettings } from '../types';
 import {
   Calendar,
   Sparkles,
@@ -10,15 +10,19 @@ interface StudyPlannerViewProps {
   studyPlan: StudyPlanSession[];
   onUpdateStudyPlan: (plan: StudyPlanSession[]) => void;
   onToggleSession: (id: string) => void;
+  settings?: AppSettings;
 }
 
 export const StudyPlannerView: React.FC<StudyPlannerViewProps> = ({
   studyPlan,
   onUpdateStudyPlan,
-  onToggleSession
+  onToggleSession,
+  settings
 }) => {
   const [examDate, setExamDate] = useState('2026-10-02');
-  const [availableHours, setAvailableHours] = useState(3.5);
+  const [availableHours, setAvailableHours] = useState(
+    settings ? Math.round((settings.dailyStudyGoalMinutes / 60) * 10) / 10 : 3.5
+  );
   const [prepLevel] = useState('Intermediate');
   const [weakSubject, setWeakSubject] = useState('Computer Networks');
   const [preferredTime, setPreferredTime] = useState('Evening (6 PM - 10 PM)');
@@ -42,7 +46,9 @@ export const StudyPlannerView: React.FC<StudyPlannerViewProps> = ({
           availableHours,
           preparationLevel: prepLevel,
           weakSubjects: [weakSubject],
-          preferredTimes: preferredTime
+          preferredTimes: preferredTime,
+          apiKey: settings?.geminiApiKey,
+          model: settings?.aiModel
         })
       });
       const data = await res.json();

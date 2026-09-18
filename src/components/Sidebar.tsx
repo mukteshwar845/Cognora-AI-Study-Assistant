@@ -10,7 +10,8 @@ import {
   TrendingUp,
   Users,
   Settings,
-  Plus
+  Plus,
+  Binary
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { CognoraLogo } from './CognoraLogo';
@@ -22,6 +23,7 @@ interface SidebarProps {
   onSelectTab: (tabId: string) => void;
   onOpenUpload: () => void;
   onOpenProfile: () => void;
+  onOpenSettings?: () => void;
   onOpenNotifications: () => void;
   unreadCount: number;
   user: UserProfile;
@@ -48,6 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectTab,
   onOpenUpload,
   onOpenProfile,
+  onOpenSettings,
   onOpenNotifications,
   unreadCount,
   user,
@@ -72,6 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { id: 'quizzes', label: 'Quizzes', icon: CheckCircle2 },
         { id: 'flashcards', label: 'Flashcards', icon: Layers },
+        { id: 'formulas', label: 'Formula Sheet', icon: Binary },
         { id: 'exams', label: 'Exam Mode', icon: Clock, highlight: true }
       ]
     },
@@ -175,11 +179,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Utility row: Settings */}
         <div className="px-1">
           <button
-            onClick={onOpenProfile}
-            className="w-full flex items-center gap-1.5 text-xs text-[#4B5563] hover:text-[#111827] dark:text-[#A8A8B3] dark:hover:text-white px-2 py-1.5 rounded-lg hover:bg-[#EBF0F7] dark:hover:bg-[#19191F] transition-colors"
-            title="Account Settings"
+            onClick={onOpenSettings || onOpenProfile}
+            className="w-full flex items-center gap-2 text-xs text-[#4B5563] hover:text-[#111827] dark:text-[#A8A8B3] dark:hover:text-white px-2.5 py-1.5 rounded-xl hover:bg-[#EBF0F7] dark:hover:bg-[#19191F] transition-colors group"
+            title="Settings & Study Hub"
           >
-            <Settings className="w-3.5 h-3.5" />
+            <Settings className="w-3.5 h-3.5 text-stone-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
             <span className="text-[11px] font-medium">Settings</span>
           </button>
         </div>
@@ -188,17 +192,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div
           onClick={onOpenProfile}
           className="p-2 rounded-xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] hover:border-indigo-300 dark:hover:border-indigo-500/40 cursor-pointer transition-all flex items-center justify-between group shadow-2xs"
+          title={`Student Profile: ${user.name}`}
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+            <div className={`w-7 h-7 rounded-lg bg-gradient-to-tr ${user.avatarColor || 'from-indigo-600 to-violet-500'} text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs`}>
               {user.name.slice(0, 2).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <div className="font-heading font-semibold text-xs text-[#111827] dark:text-[#F5F5F7] truncate">
+              <div className="font-heading font-semibold text-xs text-[#111827] dark:text-[#F5F5F7] truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                 {user.name}
               </div>
               <div className="text-[10px] text-[#8E95A5] dark:text-[#70707B] truncate font-mono">
-                {user.semester || 'Semester 5'}
+                {user.degree ? `${user.semester || 'Sem 5'}` : (user.semester || 'Semester 5')}
               </div>
             </div>
           </div>

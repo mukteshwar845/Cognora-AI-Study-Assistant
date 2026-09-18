@@ -14,6 +14,11 @@ import {
   saveNotifications,
   loadExamHistory,
   saveExamHistory,
+  loadAppSettings,
+  saveAppSettings,
+  exportAllStudyData,
+  importStudyData,
+  resetStudyProgress,
   DEFAULT_MATERIALS
 } from './lib/storage';
 import {
@@ -23,8 +28,10 @@ import {
   DiscussionThread,
   StudyGroup,
   NotificationItem,
-  ExamAttempt
+  ExamAttempt,
+  AppSettings
 } from './types';
+import { useTheme } from './lib/theme';
 
 // Components
 import { LandingPage } from './components/LandingPage';
@@ -37,12 +44,14 @@ import { StudyWorkspace } from './components/StudyWorkspace';
 import { AskAIView } from './components/AskAIView';
 import { QuizView } from './components/QuizView';
 import { FlashcardsView } from './components/FlashcardsView';
+import { FormulasView } from './components/FormulasView';
 import { ExamModeView } from './components/ExamModeView';
 import { StudyPlannerView } from './components/StudyPlannerView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { CommunityView } from './components/CommunityView';
 import { UploadModal } from './components/UploadModal';
 import { ProfileModal } from './components/ProfileModal';
+import { SettingsModal } from './components/SettingsModal';
 import { NotificationDrawer } from './components/NotificationDrawer';
 import { MobileDrawer } from './components/MobileDrawer';
 
@@ -53,22 +62,21 @@ export default function App() {
   const [activeMaterial, setActiveMaterial] = useState<StudyMaterial | null>(null);
   const [examMaterial, setExamMaterial] = useState<StudyMaterial | null>(null);
   const [isFocusMode, setIsFocusMode] = useState<boolean>(false);
+  const [askAiPrefill, setAskAiPrefill] = useState<string>('');
 
   // Modals & Drawers
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
-  // Dark Mode
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    const saved = localStorage.getItem('study_theme');
-    if (saved) return saved === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  // Synchronized Theme System
+  const { preference: themePreference, resolvedTheme, isDark: darkMode, setPreference: setThemePreference } = useTheme();
 
   // Core Data
   const [user, setUser] = useState<UserProfile>(loadUserProfile);
+  const [settings, setSettings] = useState<AppSettings>(loadAppSettings);
   const [materials, setMaterials] = useState<StudyMaterial[]>(loadMaterials);
   const [studyPlan, setStudyPlan] = useState<StudyPlanSession[]>(loadStudyPlan);
   const [discussions, setDiscussions] = useState<DiscussionThread[]>(loadDiscussions);
@@ -76,18 +84,16 @@ export default function App() {
   const [notifications, setNotifications] = useState<NotificationItem[]>(loadNotifications);
   const [examHistory, setExamHistory] = useState<ExamAttempt[]>(loadExamHistory);
 
-  // Sync dark mode class and data-theme
+  const handleToggleDarkMode = () => {
+    setThemePreference(darkMode ? 'light' : 'dark');
+  };
+
+  // Sync accent color with HTML data-accent attribute
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem('study_theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.setAttribute('data-theme', 'light');
-      localStorage.setItem('study_theme', 'light');
+    if (settings.accentColor) {
+      document.documentElement.setAttribute('data-accent', settings.accentColor);
     }
-  }, [darkMode]);
+  }, [settings.accentColor]);
 
   // Sync state helpers
   const handleUpdateMaterials = (newMaterials: StudyMaterial[]) => {
@@ -269,6 +275,59 @@ export default function App() {
 
   const unreadNotifCount = notifications.filter((n) => !(n.read || n.isRead)).length;
 
+  // Data backup & management handlers
+  const handleExportData = () => {
+    const jsonString = exportAllStudyData();
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cognora_study_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportData = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      if (content) {
+        const res = importStudyData(content);
+        if (res.success) {
+          setUser(loadUserProfile());
+          setSettings(loadAppSettings());
+          setMaterials(loadMaterials());
+          setStudyPlan(loadStudyPlan());
+          setExamHistory(loadExamHistory());
+          setDiscussions(loadDiscussions());
+          setStudyGroups(loadStudyGroups());
+          setNotifications(loadNotifications());
+        }
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleResetProgress = () => {
+    resetStudyProgress();
+    setExamHistory(loadExamHistory());
+    setMaterials(loadMaterials());
+  };
+
+  const handleResetDefaults = () => {
+    localStorage.clear();
+    setUser(loadUserProfile());
+    setSettings(loadAppSettings());
+    setMaterials(loadMaterials());
+    setStudyPlan(loadStudyPlan());
+    setExamHistory(loadExamHistory());
+    setDiscussions(loadDiscussions());
+    setStudyGroups(loadStudyGroups());
+    setNotifications(loadNotifications());
+  };
+
   // Jump handlers
   const handleOpenMaterial = (mat: StudyMaterial) => {
     setActiveMaterial(mat);
@@ -318,11 +377,15 @@ export default function App() {
             }}
             onOpenUpload={() => setIsUploadOpen(true)}
             onOpenProfile={() => setIsProfileOpen(true)}
+            onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenNotifications={() => setIsNotifOpen(true)}
             unreadCount={unreadNotifCount}
             user={user}
             darkMode={darkMode}
-            onToggleDarkMode={() => setDarkMode(!darkMode)}
+            onToggleDarkMode={handleToggleDarkMode}
+            themePreference={themePreference}
+            resolvedTheme={resolvedTheme}
+            onSelectThemePreference={setThemePreference}
           />
         )}
 
@@ -335,12 +398,16 @@ export default function App() {
               user={user}
               unreadCount={unreadNotifCount}
               darkMode={darkMode}
-              onToggleDarkMode={() => setDarkMode(!darkMode)}
+              onToggleDarkMode={handleToggleDarkMode}
               onOpenNotifications={() => setIsNotifOpen(true)}
               onOpenProfile={() => setIsProfileOpen(true)}
+              onOpenSettings={() => setIsSettingsOpen(true)}
               onOpenUpload={() => setIsUploadOpen(true)}
               onToggleLanding={() => setShowLanding(true)}
               onOpenDrawer={() => setIsMobileDrawerOpen(true)}
+              themePreference={themePreference}
+              resolvedTheme={resolvedTheme}
+              onSelectThemePreference={setThemePreference}
               onEnterFocusMode={() => {
                 if (!activeMaterial && materials.length > 0) {
                   setActiveMaterial(materials[0]);
@@ -357,6 +424,7 @@ export default function App() {
             {currentTab === 'dashboard' && (
               <DashboardView
                 user={user}
+                settings={settings}
                 materials={materials}
                 studyPlan={studyPlan}
                 onOpenUpload={() => setIsUploadOpen(true)}
@@ -370,6 +438,7 @@ export default function App() {
                   }
                 }}
                 onTogglePlanSession={handleTogglePlanSession}
+                onOpenSettings={() => setIsSettingsOpen(true)}
               />
             )}
 
@@ -414,14 +483,20 @@ export default function App() {
 
                     <StudyWorkspace
                       material={activeMaterial || materials[0]}
+                      settings={settings}
                       onUpdateMaterial={handleUpdateMaterial}
                       onStartExam={(mat) => {
                         setIsFocusMode(false);
                         handleStartExam(mat);
                       }}
                       onAskAIGlobal={(q) => {
+                        if (q) setAskAiPrefill(q);
                         setIsFocusMode(false);
                         setCurrentTab('ask_ai');
+                      }}
+                      onOpenFormulaHub={() => {
+                        setIsFocusMode(false);
+                        setCurrentTab('formulas');
                       }}
                       isFocusMode={isFocusMode}
                       onToggleFocusMode={() => setIsFocusMode((prev) => !prev)}
@@ -447,6 +522,8 @@ export default function App() {
             {currentTab === 'ask_ai' && (
               <AskAIView
                 materials={materials}
+                settings={settings}
+                initialQuestion={askAiPrefill}
                 selectedMaterialId={activeMaterial?.id || materials[0]?.id || ''}
                 onSelectMaterial={(matId) => {
                   const found = materials.find((m) => m.id === matId);
@@ -463,7 +540,15 @@ export default function App() {
             {currentTab === 'quizzes' && (
               <QuizView
                 materials={materials}
+                settings={settings}
                 onMaterialSelect={handleOpenMaterial}
+                onUpdateMaterial={handleUpdateMaterial}
+                onReviseWithAI={(topic) => {
+                  if (topic) {
+                    setAskAiPrefill(`Can you explain the key concepts, common pitfalls, and give examples for: "${topic}"?`);
+                  }
+                  setCurrentTab('ask_ai');
+                }}
               />
             )}
 
@@ -475,14 +560,35 @@ export default function App() {
               />
             )}
 
+            {/* View 6b: Master Formula Sheet & Equations Hub */}
+            {currentTab === 'formulas' && (
+              <FormulasView
+                materials={materials}
+                settings={settings}
+                onOpenWorkspace={(mat) => {
+                  setActiveMaterial(mat);
+                  setCurrentTab('workspace');
+                }}
+                onAskAI={(q) => {
+                  if (q) setAskAiPrefill(q);
+                  setCurrentTab('ask_ai');
+                }}
+                onUpdateMaterial={handleUpdateMaterial}
+              />
+            )}
+
             {/* View 7: Timed Exam Mode */}
             {currentTab === 'exams' && (
               <ExamModeView
                 material={examMaterial || activeMaterial || materials[0]}
                 allMaterials={materials}
+                settings={settings}
                 onFinishExam={handleCompleteExam}
                 onExit={() => setCurrentTab('dashboard')}
                 onReviseWithAI={(topic) => {
+                  if (topic) {
+                    setAskAiPrefill(`Can you explain the key concepts, common pitfalls, and give examples for: "${topic}"?`);
+                  }
                   setCurrentTab('ask_ai');
                 }}
               />
@@ -492,6 +598,7 @@ export default function App() {
             {currentTab === 'planner' && (
               <StudyPlannerView
                 studyPlan={studyPlan}
+                settings={settings}
                 onUpdateStudyPlan={handleUpdateStudyPlan}
                 onToggleSession={handleTogglePlanSession}
               />
@@ -557,20 +664,22 @@ export default function App() {
         }}
         onOpenUpload={() => setIsUploadOpen(true)}
         onOpenProfile={() => setIsProfileOpen(true)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
         onToggleLanding={() => setShowLanding(true)}
         user={user}
         darkMode={darkMode}
-        onToggleDarkMode={() => setDarkMode(!darkMode)}
+        onToggleDarkMode={handleToggleDarkMode}
       />
 
       {/* Upload Modal */}
       <UploadModal
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
+        settings={settings}
         onMaterialCreated={handleProcessedUpload}
       />
 
-      {/* Profile Modal */}
+      {/* Upgraded Student Profile Modal */}
       <ProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
@@ -579,6 +688,35 @@ export default function App() {
           setUser(updated);
           saveUserProfile(updated);
         }}
+        onOpenSettings={() => {
+          setIsProfileOpen(false);
+          setIsSettingsOpen(true);
+        }}
+      />
+
+      {/* Comprehensive Settings & Study Hub Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        onSaveSettings={(updated) => {
+          setSettings(updated);
+          saveAppSettings(updated);
+          if (updated.themePreference !== themePreference) {
+            setThemePreference(updated.themePreference);
+          }
+        }}
+        themePreference={themePreference}
+        resolvedTheme={resolvedTheme}
+        onSelectThemePreference={setThemePreference}
+        onOpenProfile={() => {
+          setIsSettingsOpen(false);
+          setIsProfileOpen(true);
+        }}
+        onExportData={handleExportData}
+        onImportData={handleImportData}
+        onResetProgress={handleResetProgress}
+        onResetDefaults={handleResetDefaults}
       />
 
       {/* Notification Drawer */}

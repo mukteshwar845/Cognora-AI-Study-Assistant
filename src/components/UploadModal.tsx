@@ -9,12 +9,13 @@ import {
   ArrowRight,
   AlertCircle
 } from 'lucide-react';
-import { StudyMaterial } from '../types';
+import { StudyMaterial, AppSettings } from '../types';
 
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onMaterialCreated: (material: StudyMaterial) => void;
+  settings?: AppSettings;
 }
 
 const PIPELINE_STEPS = [
@@ -30,7 +31,8 @@ const PIPELINE_STEPS = [
 export const UploadModal: React.FC<UploadModalProps> = ({
   isOpen,
   onClose,
-  onMaterialCreated
+  onMaterialCreated,
+  settings
 }) => {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -154,7 +156,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({
           subject: subject || 'General',
           chapter: chapter || 'Unit 1',
           textContent,
-          inlineData: fileData
+          inlineData: fileData,
+          apiKey: settings?.geminiApiKey,
+          model: settings?.aiModel
         })
       });
 
@@ -187,14 +191,46 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             { topic: `${chapter || 'Core Mechanics'}`, relevanceScore: 95 }
           ]
         },
-        shortNotes: parsed.shortNotes || [],
-        keyConcepts: parsed.keyConcepts || [],
-        formulas: parsed.formulas || [],
+        shortNotes: (parsed.shortNotes || []).map((sn: any, i: number) => ({
+          id: sn.id || `sn_${Date.now()}_${i}`,
+          title: sn.title || 'Key Note',
+          definition: sn.definition || '',
+          conditions: sn.conditions || [],
+          timeComplexity: sn.timeComplexity,
+          examTip: sn.examTip || 'Review key conditions before tests.'
+        })),
+        keyConcepts: (parsed.keyConcepts || []).map((kc: any) => ({
+          title: kc.title || 'Core Principle',
+          explanation: kc.explanation || '',
+          category: kc.category || 'Theory'
+        })),
+        formulas: (parsed.formulas || []).map((fm: any, i: number) => ({
+          id: fm.id || `fm_${Date.now()}_${i}`,
+          name: fm.name || 'Formula',
+          formula: fm.formula || '',
+          description: fm.description || '',
+          subject: fm.subject || subject || 'General'
+        })),
         hasFormulas: parsed.hasFormulas ?? (parsed.formulas && parsed.formulas.length > 0),
-        definitions: parsed.definitions || [],
-        questions: parsed.questions || [],
+        definitions: (parsed.definitions || []).map((df: any, i: number) => ({
+          id: df.id || `def_${Date.now()}_${i}`,
+          term: df.term || 'Term',
+          definition: df.definition || '',
+          isImportant: Boolean(df.isImportant),
+          category: df.category || 'Core'
+        })),
+        questions: (parsed.questions || []).map((q: any, i: number) => ({
+          id: q.id || `q_${Date.now()}_${i}`,
+          question: q.question || 'Exam Question',
+          answer: q.answer || '',
+          marks: q.marks || (q.type === 'short' ? 2 : q.type === 'long' ? 10 : 5),
+          examType: q.examType || (q.type === 'short' ? 'Short Answer (2 Marks)' : q.type === 'long' ? 'Long Descriptive (10 Marks)' : 'Semester Exam'),
+          type: q.type || (q.marks && q.marks <= 3 ? 'short' : q.marks && q.marks >= 7 ? 'long' : 'conceptual'),
+          importance: q.importance || 'high',
+          expectedPoints: Array.isArray(q.expectedPoints) ? q.expectedPoints : undefined
+        })),
         flashcards: (parsed.flashcards || []).map((fc: any, i: number) => ({
-          id: `fc_gen_${Date.now()}_${i}`,
+          id: fc.id || `fc_gen_${Date.now()}_${i}`,
           materialId: `mat_${Date.now()}`,
           front: fc.front,
           back: fc.back,
@@ -204,7 +240,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
           status: 'new'
         })),
         quizzes: (parsed.quizzes || []).map((qz: any, i: number) => ({
-          id: `qz_gen_${Date.now()}_${i}`,
+          id: qz.id || `qz_gen_${Date.now()}_${i}`,
           materialId: `mat_${Date.now()}`,
           question: qz.question,
           type: qz.type || 'mcq',

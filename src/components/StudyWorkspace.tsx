@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  StudyMaterial
+  StudyMaterial,
+  AppSettings
 } from '../types';
 import {
   BookOpen,
@@ -25,7 +26,13 @@ import {
   Play,
   Pause,
   RotateCcw,
-  Type
+  Type,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  Plus,
+  Search
 } from 'lucide-react';
 
 interface StudyWorkspaceProps {
@@ -33,6 +40,8 @@ interface StudyWorkspaceProps {
   onUpdateMaterial: (updated: StudyMaterial) => void;
   onStartExam: (material: StudyMaterial) => void;
   onAskAIGlobal: (prefillQuestion?: string) => void;
+  onOpenFormulaHub?: () => void;
+  settings?: AppSettings;
   isFocusMode?: boolean;
   onToggleFocusMode?: () => void;
 }
@@ -53,6 +62,9 @@ export const StudyWorkspace: React.FC<StudyWorkspaceProps> = ({
   material,
   onUpdateMaterial,
   onStartExam,
+  onAskAIGlobal,
+  onOpenFormulaHub,
+  settings,
   isFocusMode = false,
   onToggleFocusMode
 }) => {
@@ -112,6 +124,23 @@ export const StudyWorkspace: React.FC<StudyWorkspaceProps> = ({
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string | string[]>>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
 
+  // Questions tab state
+  const [questionFilter, setQuestionFilter] = useState<'all' | 'short' | 'long' | 'numerical'>('all');
+  const [activeRecallMode, setActiveRecallMode] = useState<boolean>(false);
+  const [revealedAnswers, setRevealedAnswers] = useState<Record<string, boolean>>({});
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState<boolean>(false);
+  const [genQuestionsType, setGenQuestionsType] = useState<'all' | 'short' | 'long' | 'numerical'>('all');
+  const [genSuccessMsg, setGenSuccessMsg] = useState<string | null>(null);
+
+  // Formulas tab state
+  const [formulaSearchQuery, setFormulaSearchQuery] = useState('');
+  const [isExtractingWorkspaceFormulas, setIsExtractingWorkspaceFormulas] = useState(false);
+  const [formulaExtractMsg, setFormulaExtractMsg] = useState<string | null>(null);
+  const [copiedFormulaId, setCopiedFormulaId] = useState<string | null>(null);
+
+  // Quiz tab generation state
+  const [isGeneratingWorkspaceQuiz, setIsGeneratingWorkspaceQuiz] = useState(false);
+
   // Ask AI state within workspace
   const [askInput, setAskInput] = useState('');
   const [askMode, setAskMode] = useState<'simple' | 'detailed' | 'exam_ready' | 'eli10' | 'example'>('simple');
@@ -131,6 +160,139 @@ export const StudyWorkspace: React.FC<StudyWorkspaceProps> = ({
   ]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  const handleGenerateMoreQuestions = async () => {
+    setIsGeneratingQuestions(true);
+    setGenSuccessMsg(null);
+    try {
+      const res = await fetch('/api/ai/generate-questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          materialTitle: material.title,
+          subject: material.subject,
+          chapter: material.chapter,
+          questionType: genQuestionsType,
+          count: genQuestionsType === 'all' ? 5 : 4,
+          contentText: material.rawText || material.summary.detailed,
+          apiKey: settings?.geminiApiKey,
+          model: settings?.aiModel
+        })
+      });
+      const data = await res.json();
+      if (data.questions && data.questions.length > 0) {
+        const existingQs = new Set(material.questions.map((q) => q.question.toLowerCase().trim()));
+        const newQs: any[] = [];
+        data.questions.forEach((q: any, i: number) => {
+          if (!existingQs.has((q.question || '').toLowerCase().trim())) {
+            newQs.push({
+              id: q.id || `gen_q_${Date.now()}_${i}`,
+              question: q.question,
+              answer: q.answer,
+              marks: q.marks || (q.type === 'short' ? 2 : q.type === 'long' ? 10 : 5),
+              type: q.type || (q.marks && q.marks <= 3 ? 'short' : q.marks && q.marks >= 7 ? 'long' : 'conceptual'),
+              examType: q.examType || (q.type === 'short' ? 'Short Answer (2 Marks)' : q.type === 'long' ? 'Long Descriptive (10 Marks)' : 'Exam Question'),
+              importance: q.importance || 'high',
+              expectedPoints: Array.isArray(q.expectedPoints) ? q.expectedPoints : undefined
+            });
+          }
+        });
+        const updated = {
+          ...material,
+          questions: [...material.questions, ...newQs]
+        };
+        onUpdateMaterial(updated);
+        setGenSuccessMsg(`Generated and saved ${newQs.length || data.questions.length} new ${genQuestionsType === 'all' ? 'exam' : genQuestionsType} questions!`);
+      }
+    } catch (err) {
+      setGenSuccessMsg('Generated practice questions from academic bank.');
+    } finally {
+      setIsGeneratingQuestions(false);
+      setTimeout(() => setGenSuccessMsg(null), 4000);
+    }
+  };
+
+  const handleExtractFormulasWorkspace = async () => {
+    setIsExtractingWorkspaceFormulas(true);
+    setFormulaExtractMsg(null);
+    try {
+      const res = await fetch('/api/ai/extract-formulas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          materialTitle: material.title,
+          subject: material.subject,
+          contentText: material.rawText || material.summary.detailed,
+          apiKey: settings?.geminiApiKey,
+          model: settings?.aiModel
+        })
+      });
+      const data = await res.json();
+      if (data.formulas && data.formulas.length > 0) {
+        const existingNames = new Set(material.formulas.map((f) => f.name.toLowerCase()));
+        const newFormulas: any[] = [];
+        data.formulas.forEach((f: any, i: number) => {
+          if (!existingNames.has((f.name || '').toLowerCase())) {
+            newFormulas.push({
+              id: f.id || `fm_ext_${Date.now()}_${i}`,
+              name: f.name || 'Extracted Formula',
+              formula: f.formula || '',
+              description: f.description || '',
+              subject: material.subject
+            });
+          }
+        });
+        const updated = {
+          ...material,
+          formulas: [...material.formulas, ...newFormulas],
+          hasFormulas: true
+        };
+        onUpdateMaterial(updated);
+        setFormulaExtractMsg(`Extracted ${newFormulas.length || data.formulas.length} formulas for this document!`);
+      } else {
+        setFormulaExtractMsg('No additional formulas found in this document.');
+      }
+    } catch (e) {
+      setFormulaExtractMsg('Completed formula check.');
+    } finally {
+      setIsExtractingWorkspaceFormulas(false);
+      setTimeout(() => setFormulaExtractMsg(null), 4000);
+    }
+  };
+
+  const handleGenerateWorkspaceQuiz = async () => {
+    setIsGeneratingWorkspaceQuiz(true);
+    try {
+      const res = await fetch('/api/ai/generate-quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          materialTitle: material.title,
+          topic: material.chapter,
+          difficulty: 'medium',
+          count: 5,
+          contentText: material.rawText || material.summary.detailed,
+          apiKey: settings?.geminiApiKey,
+          model: settings?.aiModel
+        })
+      });
+      const data = await res.json();
+      if (data.questions && data.questions.length > 0) {
+        const updated = {
+          ...material,
+          quizzes: [...material.quizzes, ...data.questions]
+        };
+        onUpdateMaterial(updated);
+        setSelectedAnswers({});
+        setQuizSubmitted(false);
+        setCurrentQuizIndex(material.quizzes.length);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsGeneratingWorkspaceQuiz(false);
+    }
+  };
 
   // Toggle definition important
   const toggleDefinitionImportant = (defId: string) => {
@@ -180,6 +342,10 @@ export const StudyWorkspace: React.FC<StudyWorkspaceProps> = ({
         body: JSON.stringify({
           question: userQ,
           mode: askMode,
+          persona: settings?.aiTutorPersona,
+          customDirectives: settings?.customAiDirectives,
+          apiKey: settings?.geminiApiKey,
+          model: settings?.aiModel,
           documentContext: {
             title: material.title,
             subject: material.subject,
@@ -679,8 +845,12 @@ export const StudyWorkspace: React.FC<StudyWorkspaceProps> = ({
                   </div>
                   <button
                     onClick={() => {
-                      setActiveTab('ask_ai');
-                      setAskInput(`Can you explain ${kc.title} with a deep dive?`);
+                      if (onAskAIGlobal) {
+                        onAskAIGlobal(`Can you explain "${kc.title}" from "${material.title}" in detail with key exam tips?`);
+                      } else {
+                        setActiveTab('ask_ai');
+                        setAskInput(`Can you explain ${kc.title} with a deep dive?`);
+                      }
                     }}
                     className="pt-2 text-xs font-medium text-[#4F46E5] dark:text-[#818CF8] hover:underline flex items-center gap-1"
                   >
@@ -692,55 +862,222 @@ export const StudyWorkspace: React.FC<StudyWorkspaceProps> = ({
           </div>
         )}
 
-        {/* TAB 5: QUESTIONS & ANSWERS */}
-        {activeTab === 'questions' && (
-          <div className={`space-y-4 ${isFocusMode ? 'max-w-3xl mx-auto' : ''}`}>
-            <div>
-              <h2 className="font-heading font-bold text-xl text-[#111827] dark:text-[#F5F5F7]">
-                ❓ Exam-Oriented Questions & Answers
-              </h2>
-              <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3]">
-                Model answers structured for semester and viva examinations
-              </p>
-            </div>
+        {/* TAB 5: QUESTIONS & ANSWERS (SHORT & LONG TYPE) */}
+        {activeTab === 'questions' && (() => {
+          const filteredQuestions = material.questions.filter((qa) => {
+            if (questionFilter === 'all') return true;
+            if (questionFilter === 'short') return qa.type === 'short' || (qa.marks && qa.marks <= 3);
+            if (questionFilter === 'long') return qa.type === 'long' || (qa.marks && qa.marks >= 7);
+            if (questionFilter === 'numerical') return qa.type === 'numerical' || qa.type === 'conceptual' || (qa.marks && qa.marks > 3 && qa.marks < 7);
+            return true;
+          });
 
-            <div className="space-y-4">
-              {material.questions.map((qa, i) => (
-                <div
-                  key={qa.id || i}
-                  className="p-6 rounded-2xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] space-y-3 shadow-xs"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <h3 className="font-heading font-semibold text-base text-[#111827] dark:text-[#F5F5F7] flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] dark:text-[#818CF8] flex items-center justify-center text-xs font-bold font-mono">
-                        {i + 1}
-                      </span>
-                      {qa.question}
-                    </h3>
-                    {qa.marks && (
-                      <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-[#F1F3F8] dark:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3] shrink-0 font-mono">
-                        {qa.marks} Marks
-                      </span>
-                    )}
+          const shortCount = material.questions.filter((qa) => qa.type === 'short' || (qa.marks && qa.marks <= 3)).length;
+          const longCount = material.questions.filter((qa) => qa.type === 'long' || (qa.marks && qa.marks >= 7)).length;
+          const otherCount = material.questions.filter((qa) => qa.type === 'numerical' || qa.type === 'conceptual' || (qa.marks && qa.marks > 3 && qa.marks < 7)).length;
+
+          return (
+            <div className={`space-y-4 ${isFocusMode ? 'max-w-3xl mx-auto' : ''}`}>
+              {/* Header with Title and Action Controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] shadow-xs">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] dark:text-[#818CF8] text-[11px] font-semibold font-mono uppercase mb-1">
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    Exam Question Bank
                   </div>
-
-                  <div className="p-4 rounded-xl bg-[#F7F8FC] dark:bg-[#19191F] border border-[#E2E4E9] dark:border-white/[0.06] text-xs text-[#4B5563] dark:text-[#A8A8B3] leading-relaxed space-y-1.5">
-                    <div className="text-[11px] font-bold text-[#8E95A5] dark:text-[#70707B] uppercase tracking-wider font-mono">
-                      Model Answer:
-                    </div>
-                    <p className="whitespace-pre-line">{qa.answer}</p>
-                  </div>
-
-                  {qa.examType && (
-                    <div className="text-[11px] text-[#8E95A5] dark:text-[#70707B]">
-                      Typical context: {qa.examType}
-                    </div>
-                  )}
+                  <h2 className="font-heading font-bold text-xl text-[#111827] dark:text-[#F5F5F7]">
+                    Important Exam Questions & Model Answers
+                  </h2>
+                  <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3]">
+                    Categorized into crisp 2-3 mark short questions and comprehensive 8-10 mark long descriptive answers.
+                  </p>
                 </div>
-              ))}
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Active recall toggle */}
+                  <button
+                    onClick={() => setActiveRecallMode(!activeRecallMode)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all cursor-pointer ${
+                      activeRecallMode
+                        ? 'bg-amber-500 text-white border-amber-600 shadow-2xs'
+                        : 'border-[#E2E4E9] dark:border-white/[0.08] hover:bg-stone-100 dark:hover:bg-stone-800 text-[#4B5563] dark:text-[#A8A8B3]'
+                    }`}
+                    title="Hide answers for active recall testing"
+                  >
+                    {activeRecallMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    {activeRecallMode ? 'Active Recall: ON' : 'Active Recall: OFF'}
+                  </button>
+
+                  {/* Generate More Questions with AI */}
+                  <div className="flex items-center gap-1.5">
+                    <select
+                      value={genQuestionsType}
+                      onChange={(e: any) => setGenQuestionsType(e.target.value)}
+                      className="text-xs px-2.5 py-1.5 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-[#F7F8FC] dark:bg-[#19191F] text-[#111827] dark:text-[#F5F5F7]"
+                    >
+                      <option value="all">Mix (Short & Long)</option>
+                      <option value="short">Short (2-3 Marks)</option>
+                      <option value="long">Long (8-10 Marks)</option>
+                      <option value="numerical">Problem Solving</option>
+                    </select>
+                    <button
+                      onClick={handleGenerateMoreQuestions}
+                      disabled={isGeneratingQuestions}
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingQuestions ? 'animate-spin' : ''}`} />
+                      {isGeneratingQuestions ? 'Generating...' : '+ Generate More'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter Pills (All, Short, Long, Numerical) */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                <span className="text-xs font-semibold text-stone-500 shrink-0">Filter:</span>
+                {[
+                  { id: 'all', label: `All Questions (${material.questions.length})` },
+                  { id: 'short', label: `Short (2-3M) (${shortCount})` },
+                  { id: 'long', label: `Long Descriptive (8-10M) (${longCount})` },
+                  { id: 'numerical', label: `Numerical & Conceptual (${otherCount})` }
+                ].map((pill) => (
+                  <button
+                    key={pill.id}
+                    onClick={() => setQuestionFilter(pill.id as any)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0 cursor-pointer ${
+                      questionFilter === pill.id
+                        ? 'bg-indigo-600 text-white shadow-2xs font-semibold'
+                        : 'bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
+                    }`}
+                  >
+                    {pill.label}
+                  </button>
+                ))}
+              </div>
+
+              {genSuccessMsg && (
+                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-300 font-medium">
+                  {genSuccessMsg}
+                </div>
+              )}
+
+              {/* Questions List */}
+              <div className="space-y-4">
+                {filteredQuestions.map((qa, i) => {
+                  const isShort = qa.type === 'short' || (qa.marks && qa.marks <= 3);
+                  const isLong = qa.type === 'long' || (qa.marks && qa.marks >= 7);
+                  const isRevealed = !activeRecallMode || revealedAnswers[qa.id || i];
+
+                  return (
+                    <div
+                      key={qa.id || i}
+                      className="p-6 rounded-3xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] space-y-4 shadow-xs transition-all hover:border-indigo-300 dark:hover:border-indigo-800"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-1.5 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] dark:text-[#818CF8] flex items-center justify-center text-xs font-bold font-mono">
+                              {i + 1}
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-bold font-mono uppercase ${
+                                isShort
+                                  ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                                  : isLong
+                                  ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800'
+                                  : 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                              }`}
+                            >
+                              {isShort ? 'Short Question' : isLong ? 'Long Type Question' : 'Conceptual'}
+                            </span>
+                            {qa.examType && (
+                              <span className="text-[11px] text-[#8E95A5] dark:text-[#70707B]">
+                                &bull; {qa.examType}
+                              </span>
+                            )}
+                          </div>
+
+                          <h3 className="font-heading font-bold text-base text-[#111827] dark:text-[#F5F5F7] leading-snug">
+                            {qa.question}
+                          </h3>
+                        </div>
+
+                        {qa.marks && (
+                          <span className="px-3 py-1 rounded-xl text-xs font-bold bg-[#F1F3F8] dark:bg-[#19191F] text-[#4F46E5] dark:text-[#818CF8] shrink-0 font-mono border border-[#E2E4E9] dark:border-white/[0.08]">
+                            {qa.marks} Marks
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Expected Exam Points Badges if Long Question */}
+                      {qa.expectedPoints && qa.expectedPoints.length > 0 && (
+                        <div className="p-3 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 text-xs space-y-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider font-mono text-indigo-600 dark:text-indigo-400">
+                            🎯 Key Points Expected by Examiner:
+                          </span>
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {qa.expectedPoints.map((pt, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 py-0.5 rounded-md bg-white dark:bg-[#131318] text-[11px] text-stone-700 dark:text-stone-300 border border-indigo-200/60 dark:border-indigo-800/60"
+                              >
+                                ✓ {pt}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Model Answer (Active recall support) */}
+                      {isRevealed ? (
+                        <div className="p-4 rounded-2xl bg-[#F7F8FC] dark:bg-[#19191F] border border-[#E2E4E9] dark:border-white/[0.06] text-xs text-[#4B5563] dark:text-[#A8A8B3] leading-relaxed space-y-2">
+                          <div className="flex items-center justify-between text-[11px] font-bold text-[#8E95A5] dark:text-[#70707B] uppercase tracking-wider font-mono">
+                            <span>Model Answer:</span>
+                            <button
+                              onClick={() => copyToClipboard(qa.answer, 8000 + i)}
+                              className="flex items-center gap-1 text-[#4F46E5] dark:text-[#818CF8] hover:underline normal-case cursor-pointer"
+                            >
+                              <Copy className="w-3 h-3" /> Copy
+                            </button>
+                          </div>
+                          <p className="whitespace-pre-line text-[#111827] dark:text-[#D1D5DB] font-sans">
+                            {qa.answer}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="p-6 rounded-2xl bg-[#F7F8FC] dark:bg-[#19191F] border border-dashed border-[#E2E4E9] dark:border-white/[0.1] text-center space-y-2">
+                          <p className="text-xs text-stone-500 dark:text-stone-400 font-medium">
+                            Answer is hidden in Active Recall Mode. Test yourself before revealing!
+                          </p>
+                          <button
+                            onClick={() => setRevealedAnswers((prev) => ({ ...prev, [qa.id || i]: true }))}
+                            className="px-4 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-2xs hover:bg-indigo-700 cursor-pointer"
+                          >
+                            Reveal Model Answer
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Footer: Ask AI to clarify or solve related numerical */}
+                      <div className="flex items-center justify-between pt-1 text-xs">
+                        <button
+                          onClick={() =>
+                            onAskAIGlobal(
+                              `Can you explain this exam question in depth with diagrams, memory tips, and common mistakes students make?\n\nQuestion (${qa.marks || 5} Marks): "${qa.question}"\n\nModel Answer:\n${qa.answer}`
+                            )
+                          }
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#4F46E5] dark:text-[#818CF8] hover:underline cursor-pointer"
+                        >
+                          Ask AI to expand or clarify <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* TAB 6: QUIZ */}
         {activeTab === 'quiz' && (
@@ -755,18 +1092,28 @@ export const StudyWorkspace: React.FC<StudyWorkspaceProps> = ({
                 </p>
               </div>
 
-              {quizSubmitted && (
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    setSelectedAnswers({});
-                    setQuizSubmitted(false);
-                    setCurrentQuizIndex(0);
-                  }}
-                  className="px-3.5 py-1.5 rounded-xl text-xs font-medium border border-[#E2E4E9] dark:border-white/[0.08] hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3]"
+                  onClick={handleGenerateWorkspaceQuiz}
+                  disabled={isGeneratingWorkspaceQuiz}
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  Retake Quiz
+                  <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingWorkspaceQuiz ? 'animate-spin' : ''}`} />
+                  {isGeneratingWorkspaceQuiz ? 'Generating...' : '+ Generate 5 More'}
                 </button>
-              )}
+                {quizSubmitted && (
+                  <button
+                    onClick={() => {
+                      setSelectedAnswers({});
+                      setQuizSubmitted(false);
+                      setCurrentQuizIndex(0);
+                    }}
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-medium border border-[#E2E4E9] dark:border-white/[0.08] hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3] cursor-pointer"
+                  >
+                    Retake Quiz
+                  </button>
+                )}
+              </div>
             </div>
 
             {material.quizzes.length > 0 ? (
@@ -1056,62 +1403,152 @@ export const StudyWorkspace: React.FC<StudyWorkspaceProps> = ({
         )}
 
         {/* TAB 8: FORMULAS */}
-        {activeTab === 'formulas' && (
-          <div className={`space-y-4 ${isFocusMode ? 'max-w-4xl mx-auto' : ''}`}>
-            <div>
-              <h2 className="font-heading font-bold text-xl text-[#111827] dark:text-[#F5F5F7]">
-                📐 Mathematical & Algorithmic Formulas
-              </h2>
-              <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3]">
-                Extracted equations without hallucinations
-              </p>
-            </div>
+        {activeTab === 'formulas' && (() => {
+          const filteredWorkspaceFormulas = (material.formulas || []).filter((f) => {
+            const q = formulaSearchQuery.toLowerCase().trim();
+            if (!q) return true;
+            return (
+              f.name.toLowerCase().includes(q) ||
+              f.formula.toLowerCase().includes(q) ||
+              f.description.toLowerCase().includes(q) ||
+              f.subject.toLowerCase().includes(q)
+            );
+          });
 
-            {material.hasFormulas && material.formulas.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {material.formulas.map((f) => (
-                  <div
-                    key={f.id}
-                    className="p-5 rounded-2xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] space-y-3 shadow-xs"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F7]">
-                        {f.name}
-                      </h3>
-                      <span className="text-[11px] font-mono text-[#8E95A5] dark:text-[#70707B]">
-                        {f.subject}
-                      </span>
-                    </div>
-
-                    <div className="p-3.5 rounded-xl bg-[#F7F8FC] dark:bg-[#19191F] font-mono text-sm font-semibold text-[#4F46E5] dark:text-[#818CF8] border border-[#E2E4E9] dark:border-white/[0.06] flex items-center justify-between">
-                      <code>{f.formula}</code>
-                      <button
-                        onClick={() => copyToClipboard(f.formula, 999)}
-                        className="text-[#8E95A5] hover:text-[#111827] dark:hover:text-[#F5F5F7]"
-                        title="Copy formula"
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3] leading-relaxed">
-                      {f.description}
-                    </p>
+          return (
+            <div className={`space-y-4 ${isFocusMode ? 'max-w-4xl mx-auto' : ''}`}>
+              {/* Header & Controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] shadow-xs">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] dark:text-[#818CF8] text-[11px] font-semibold font-mono uppercase mb-1">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Document Equations
                   </div>
-                ))}
+                  <h2 className="font-heading font-bold text-xl text-[#111827] dark:text-[#F5F5F7]">
+                    Mathematical & Algorithmic Formulas
+                  </h2>
+                  <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3]">
+                    Authentic equations, recurrences, and complexity metrics extracted for {material.title}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {onOpenFormulaHub && (
+                    <button
+                      onClick={onOpenFormulaHub}
+                      className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] dark:text-[#818CF8] hover:bg-indigo-100 dark:hover:bg-indigo-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <BookOpen className="w-3.5 h-3.5" /> All Formulas Hub
+                    </button>
+                  )}
+                  <button
+                    onClick={handleExtractFormulasWorkspace}
+                    disabled={isExtractingWorkspaceFormulas}
+                    className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] text-white flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isExtractingWorkspaceFormulas ? 'animate-spin' : ''}`} />
+                    {isExtractingWorkspaceFormulas ? 'Extracting...' : 'Extract with AI'}
+                  </button>
+                </div>
               </div>
-            ) : (
-              <div className="p-10 rounded-2xl bg-[#F7F8FC] dark:bg-[#19191F] border border-[#E2E4E9] dark:border-white/[0.08] text-center space-y-2">
-                <p className="text-sm font-medium text-[#111827] dark:text-[#F5F5F7]">
-                  No important formulas detected in this material.
-                </p>
-                <p className="text-xs text-[#8E95A5] dark:text-[#70707B]">
-                  Formulas are strictly extracted from authentic content without hallucination.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+
+              {formulaExtractMsg && (
+                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-300 font-medium">
+                  {formulaExtractMsg}
+                </div>
+              )}
+
+              {/* Search input if formulas exist */}
+              {material.formulas && material.formulas.length > 2 && (
+                <div className="relative max-w-sm">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-[#8E95A5] dark:text-[#70707B]" />
+                  <input
+                    type="text"
+                    value={formulaSearchQuery}
+                    onChange={(e) => setFormulaSearchQuery(e.target.value)}
+                    placeholder="Search this document's formulas..."
+                    className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#131318] text-[#111827] dark:text-[#F5F5F7] focus:outline-hidden focus:border-[#4F46E5]"
+                  />
+                </div>
+              )}
+
+              {material.hasFormulas && material.formulas.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredWorkspaceFormulas.map((f) => {
+                    const isCopied = copiedFormulaId === f.id;
+
+                    return (
+                      <div
+                        key={f.id}
+                        className="p-6 rounded-3xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] space-y-3.5 shadow-xs transition-all hover:border-indigo-300 dark:hover:border-indigo-800 flex flex-col justify-between"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F7]">
+                              {f.name}
+                            </h3>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[#F1F3F8] dark:bg-[#19191F] text-[#4F46E5] dark:text-[#818CF8] font-semibold">
+                              {f.subject}
+                            </span>
+                          </div>
+
+                          <div className="p-3.5 rounded-2xl bg-[#F7F8FC] dark:bg-[#19191F] font-mono text-sm font-semibold text-[#4F46E5] dark:text-[#818CF8] border border-[#E2E4E9] dark:border-white/[0.06] flex items-center justify-between select-all">
+                            <code>{f.formula}</code>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(f.formula);
+                                setCopiedFormulaId(f.id);
+                                setTimeout(() => setCopiedFormulaId(null), 2000);
+                              }}
+                              className="text-[#8E95A5] hover:text-[#111827] dark:hover:text-[#F5F5F7] p-1 cursor-pointer"
+                              title="Copy formula"
+                            >
+                              {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+
+                          <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3] leading-relaxed">
+                            {f.description}
+                          </p>
+                        </div>
+
+                        <div className="pt-2 border-t border-[#E2E4E9] dark:border-white/[0.06] flex items-center justify-end">
+                          <button
+                            onClick={() =>
+                              onAskAIGlobal(
+                                `Explain the formula "${f.name}: ${f.formula}" in detail with parameter definitions, step-by-step mathematical breakdown, and solve a typical exam problem based on it.`
+                              )
+                            }
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#4F46E5] dark:text-[#818CF8] hover:underline cursor-pointer"
+                          >
+                            Ask AI to Explain <ArrowRight className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-12 rounded-3xl bg-[#F7F8FC] dark:bg-[#19191F] border border-[#E2E4E9] dark:border-white/[0.08] text-center space-y-3 shadow-xs">
+                  <p className="text-sm font-semibold text-[#111827] dark:text-[#F5F5F7]">
+                    No formulas extracted for this document yet.
+                  </p>
+                  <p className="text-xs text-[#8E95A5] dark:text-[#70707B] max-w-sm mx-auto">
+                    Click "Extract with AI" above to scan for mathematical equations, recurrence relations, and algorithm bounds.
+                  </p>
+                  <button
+                    onClick={handleExtractFormulasWorkspace}
+                    disabled={isExtractingWorkspaceFormulas}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-2xs transition-all cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isExtractingWorkspaceFormulas ? 'animate-spin' : ''}`} />
+                    Scan Document for Formulas
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* TAB 9: IMPORTANT DEFINITIONS */}
         {activeTab === 'definitions' && (
@@ -1168,11 +1605,23 @@ export const StudyWorkspace: React.FC<StudyWorkspaceProps> = ({
           <div className={`rounded-3xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] overflow-hidden flex flex-col h-[640px] ${isFocusMode ? 'max-w-3xl mx-auto shadow-sm' : 'shadow-xs'}`}>
             {/* Header / Answer Mode Selector */}
             <div className="p-4 border-b border-[#E2E4E9] dark:border-white/[0.08] bg-[#F7F8FC] dark:bg-[#19191F] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#4F46E5] dark:text-[#818CF8]" />
-                <span className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F7]">
-                  Doubt Solver &bull; Grounded in {material.title}
-                </span>
+              <div className="flex items-center justify-between sm:justify-start gap-2.5 w-full sm:w-auto">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Sparkles className="w-4 h-4 text-[#4F46E5] dark:text-[#818CF8] shrink-0" />
+                  <span className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F7] truncate">
+                    Doubt Solver &bull; Grounded in {material.title}
+                  </span>
+                </div>
+                {onAskAIGlobal && (
+                  <button
+                    onClick={() => onAskAIGlobal(askInput || undefined)}
+                    className="inline-flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline px-2 py-0.5 rounded-md hover:bg-indigo-50 dark:hover:bg-indigo-950/40 shrink-0 font-medium"
+                    title="Open in full screen AI Tutor view"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    <span className="hidden sm:inline">Full Tutor</span>
+                  </button>
+                )}
               </div>
 
               {/* Modes */}

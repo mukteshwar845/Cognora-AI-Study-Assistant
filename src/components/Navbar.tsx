@@ -4,7 +4,8 @@ import {
   Bell,
   Maximize2,
   ChevronRight,
-  Menu
+  Menu,
+  Settings
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { CognoraLogo } from './CognoraLogo';
@@ -19,6 +20,7 @@ interface NavbarProps {
   onToggleDarkMode: () => void;
   onOpenNotifications: () => void;
   onOpenProfile: () => void;
+  onOpenSettings?: () => void;
   onOpenUpload: () => void;
   onToggleLanding: () => void;
   onEnterFocusMode?: () => void;
@@ -36,6 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleDarkMode,
   onOpenNotifications,
   onOpenProfile,
+  onOpenSettings,
   onOpenUpload,
   onToggleLanding,
   onEnterFocusMode,
@@ -169,10 +172,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </button>
 
+        {/* Settings Button */}
+        {onOpenSettings && (
+          <button
+            onClick={onOpenSettings}
+            className="hidden sm:flex p-1.5 rounded-lg text-[#4B5563] hover:text-[#111827] dark:text-[#A8A8B3] dark:hover:text-white hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] transition-colors"
+            title="Settings & Study Hub"
+            aria-label="Open Settings"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+        )}
+
         {/* User Profile Avatar */}
         <button
           onClick={onOpenProfile}
-          className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-bold text-xs shadow-2xs hover:ring-2 hover:ring-indigo-500/30 transition-all shrink-0"
+          className={`w-7 h-7 rounded-lg bg-gradient-to-tr ${user.avatarColor || 'from-indigo-600 to-violet-500'} text-white flex items-center justify-center font-bold text-xs shadow-2xs hover:ring-2 hover:ring-indigo-500/30 transition-all shrink-0`}
           title={`Profile: ${user.name}`}
           aria-label="Open Profile"
         >

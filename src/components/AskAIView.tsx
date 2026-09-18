@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StudyMaterial,
-  ExplanationMode
+  ExplanationMode,
+  AppSettings
 } from '../types';
 import {
   Sparkles,
@@ -13,6 +14,7 @@ import {
 
 interface AskAIViewProps {
   materials: StudyMaterial[];
+  settings?: AppSettings;
   selectedMaterialId?: string;
   onSelectMaterial: (id: string) => void;
   onOpenWorkspace: (material: StudyMaterial) => void;
@@ -35,6 +37,7 @@ interface Message {
 
 export const AskAIView: React.FC<AskAIViewProps> = ({
   materials,
+  settings,
   selectedMaterialId,
   onSelectMaterial,
   onOpenWorkspace,
@@ -44,10 +47,26 @@ export const AskAIView: React.FC<AskAIViewProps> = ({
     selectedMaterialId || (materials.length > 0 ? materials[0].id : '')
   );
 
-  const [mode, setMode] = useState<ExplanationMode>('simple');
+  const [mode, setMode] = useState<ExplanationMode>(
+    settings?.defaultAnswerMode || 'simple'
+  );
   const [input, setInput] = useState(initialQuestion || '');
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Sync active material when prop changes
+  useEffect(() => {
+    if (selectedMaterialId) {
+      setActiveMaterialId(selectedMaterialId);
+    }
+  }, [selectedMaterialId]);
+
+  // Sync initial question when prefilled from another view
+  useEffect(() => {
+    if (initialQuestion) {
+      setInput(initialQuestion);
+    }
+  }, [initialQuestion]);
 
   const activeMaterial = materials.find((m) => m.id === activeMaterialId);
 
@@ -93,6 +112,10 @@ Select an uploaded material above, choose your preferred answer mode, and ask an
         body: JSON.stringify({
           question: userText,
           mode,
+          persona: settings?.aiTutorPersona,
+          customDirectives: settings?.customAiDirectives,
+          apiKey: settings?.geminiApiKey,
+          model: settings?.aiModel,
           documentContext: activeMaterial
             ? {
                 title: activeMaterial.title,
@@ -144,9 +167,16 @@ Select an uploaded material above, choose your preferred answer mode, and ask an
       <div className="p-6 rounded-3xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] shadow-xs space-y-4 transition-colors">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] dark:text-[#818CF8] mb-1 font-mono">
-              <Sparkles className="w-3.5 h-3.5" />
-              Context-Aware Doubt Solver
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] dark:text-[#818CF8] font-mono">
+                <Sparkles className="w-3.5 h-3.5" />
+                Context-Aware Doubt Solver
+              </div>
+              {settings?.aiTutorPersona && (
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 font-mono capitalize">
+                  Persona: {settings.aiTutorPersona}
+                </div>
+              )}
             </div>
             <h1 className="font-heading font-bold text-2xl text-[#111827] dark:text-[#F5F5F7]">
               Ask AI Study Tutor
@@ -216,6 +246,9 @@ Select an uploaded material above, choose your preferred answer mode, and ask an
                 title={item.desc}
               >
                 <span>{item.label}</span>
+                {settings?.defaultAnswerMode === item.id && (
+                  <span className="text-[9px] opacity-75 font-mono">(Default)</span>
+                )}
               </button>
             ))}
           </div>

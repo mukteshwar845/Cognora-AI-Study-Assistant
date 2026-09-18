@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudyMaterial, QuizQuestion } from '../types';
+import { StudyMaterial, QuizQuestion, AppSettings } from '../types';
 import {
   Sparkles,
   Award,
@@ -11,16 +11,25 @@ import {
 interface QuizViewProps {
   materials: StudyMaterial[];
   onMaterialSelect: (material: StudyMaterial) => void;
+  onUpdateMaterial?: (updated: StudyMaterial) => void;
+  onReviseWithAI?: (topic: string) => void;
+  settings?: AppSettings;
 }
 
 export const QuizView: React.FC<QuizViewProps> = ({
-  materials
+  materials,
+  onMaterialSelect,
+  onUpdateMaterial,
+  onReviseWithAI,
+  settings
 }) => {
   const [selectedMaterialId, setSelectedMaterialId] = useState<string>(
     materials[0]?.id || ''
   );
   const [topic, setTopic] = useState('');
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(
+    settings?.defaultQuizDifficulty || 'medium'
+  );
   const [questionType, setQuestionType] = useState<'mcq' | 'true_false' | 'multiple_answer'>('mcq');
   const [count, setCount] = useState(5);
 
@@ -29,6 +38,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
   const [userAnswers, setUserAnswers] = useState<Record<number, string | string[]>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
 
   const currentMaterial = materials.find((m) => m.id === selectedMaterialId);
 
@@ -56,7 +66,9 @@ export const QuizView: React.FC<QuizViewProps> = ({
           difficulty,
           questionType,
           count,
-          contentText: currentMaterial.rawText || currentMaterial.summary.detailed
+          contentText: currentMaterial.rawText || currentMaterial.summary.detailed,
+          apiKey: settings?.geminiApiKey,
+          model: settings?.aiModel
         })
       });
       const data = await res.json();
@@ -185,20 +197,55 @@ export const QuizView: React.FC<QuizViewProps> = ({
                 })}
               </div>
 
-              <div className="flex items-center justify-center gap-3 pt-4">
+              {savedMessage && (
+                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-300 font-medium max-w-md mx-auto">
+                  {savedMessage}
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
+                {currentMaterial && onUpdateMaterial && (
+                  <button
+                    onClick={() => {
+                      const existingQuestions = new Set(currentMaterial.quizzes.map((q) => q.question.toLowerCase().trim()));
+                      const toAdd = (activeQuizList || []).filter((q) => !existingQuestions.has(q.question.toLowerCase().trim()));
+                      if (toAdd.length > 0) {
+                        onUpdateMaterial({
+                          ...currentMaterial,
+                          quizzes: [...currentMaterial.quizzes, ...toAdd]
+                        });
+                        setSavedMessage(`Saved ${toAdd.length} new questions to "${currentMaterial.title}"!`);
+                      } else {
+                        setSavedMessage('All quiz questions already saved in material library.');
+                      }
+                      setTimeout(() => setSavedMessage(null), 3500);
+                    }}
+                    className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  >
+                    <Check className="w-3.5 h-3.5" /> Save to Material
+                  </button>
+                )}
+                {onReviseWithAI && (
+                  <button
+                    onClick={() => onReviseWithAI(topic || currentMaterial?.chapter || 'Core Concepts')}
+                    className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-800/50 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" /> Revise with AI
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     setUserAnswers({});
                     setIsSubmitted(false);
                     setCurrentIndex(0);
                   }}
-                  className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8]"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA] dark:bg-[#6366F1] dark:hover:bg-[#818CF8] cursor-pointer"
                 >
                   Retry Quiz
                 </button>
                 <button
                   onClick={() => setActiveQuizList(null)}
-                  className="px-5 py-2.5 rounded-xl text-xs font-semibold border border-[#E2E4E9] dark:border-white/[0.08] hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3]"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold border border-[#E2E4E9] dark:border-white/[0.08] hover:bg-[#F1F3F8] dark:hover:bg-[#19191F] text-[#4B5563] dark:text-[#A8A8B3] cursor-pointer"
                 >
                   Back to Quiz Hub
                 </button>

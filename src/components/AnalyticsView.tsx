@@ -34,6 +34,33 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
     { days: 100, label: '100-Day Legend', achieved: user.streakDays >= 100 }
   ];
 
+  // Dynamic Score Trajectory based on real examHistory
+  const recentAttempts = examHistory.length > 0 ? examHistory.slice(-5) : null;
+  const scoreData = recentAttempts
+    ? recentAttempts.map((a, idx) => ({
+        val: Math.round(a.accuracy ?? a.percentage ?? (a.totalMarks ? (a.score / a.totalMarks) * 100 : a.score)),
+        label: idx === recentAttempts.length - 1 ? 'Latest' : `Test ${idx + 1}`
+      }))
+    : [
+        { val: 68, label: 'Test 1' },
+        { val: 74, label: 'Test 2' },
+        { val: 80, label: 'Test 3' },
+        { val: 86, label: 'Test 4' },
+        { val: 88, label: 'Latest' }
+      ];
+
+  const chartPoints = scoreData.map((d, i) => {
+    const step = scoreData.length > 1 ? (360 - 40) / (scoreData.length - 1) : 0;
+    const cx = scoreData.length === 1 ? 200 : Math.round(40 + i * step);
+    const cy = Math.max(20, Math.min(105, Math.round(110 - (d.val / 100) * 85)));
+    return { cx, cy, val: `${d.val}%`, label: d.label };
+  });
+
+  const polylinePoints = chartPoints.map((p) => `${p.cx},${p.cy}`).join(' ');
+  const polygonPoints = chartPoints.length > 1
+    ? `${polylinePoints} ${chartPoints[chartPoints.length - 1].cx},115 ${chartPoints[0].cx},115`
+    : `${chartPoints[0].cx - 20},115 ${chartPoints[0].cx},${chartPoints[0].cy} ${chartPoints[0].cx + 20},115`;
+
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in duration-200">
       {/* Header */}
@@ -43,19 +70,19 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
           Academic Intelligence & Growth
         </div>
         <h1 className="font-heading font-bold text-2xl text-[#111827] dark:text-[#F5F5F7]">
-          Progress & Exam Readiness Analytics
+          Performance Diagnostics & Insights
         </h1>
-        <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3]">
-          Track subject retention, study streak momentum, score trajectory, and pinpoint areas needing targeted revision.
+        <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3] max-w-xl">
+          Track mastery across units, review diagnostic weak spots, and maintain study momentum towards exam day.
         </p>
       </div>
 
-      {/* 4 Summary Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Metric Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] shadow-2xs space-y-1">
-          <div className="text-xs text-[#8E95A5] dark:text-[#70707B] font-medium font-mono">Average Score</div>
-          <div className="font-heading font-bold text-2xl text-[#111827] dark:text-[#F5F5F7]">
-            {user.averageQuizScore}%
+          <div className="text-xs text-[#8E95A5] dark:text-[#70707B] font-medium font-mono">Overall Accuracy</div>
+          <div className="font-heading font-bold text-2xl text-indigo-600 dark:text-indigo-400">
+            {user.examReadinessScore ?? user.quizAverage ?? 84}%
           </div>
           <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">+6% this month</p>
         </div>
@@ -94,7 +121,9 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
             <h3 className="font-heading font-semibold text-base text-[#111827] dark:text-[#F5F5F7]">
               📈 Exam Score Trajectory
             </h3>
-            <span className="text-xs text-[#8E95A5] dark:text-[#70707B] font-mono">Last 5 Attempts</span>
+            <span className="text-xs text-[#8E95A5] dark:text-[#70707B] font-mono">
+              {recentAttempts ? `Last ${recentAttempts.length} Attempts` : 'Sample Trajectory'}
+            </span>
           </div>
 
           {/* SVG Line Chart */}
@@ -114,7 +143,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
               {/* Area */}
               <polygon
                 fill="url(#scoreGrad)"
-                points="40,90 120,65 200,45 280,30 360,25 360,115 40,115"
+                points={polygonPoints}
               />
 
               {/* Line */}
@@ -124,17 +153,11 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                points="40,90 120,65 200,45 280,30 360,25"
+                points={polylinePoints}
               />
 
               {/* Points */}
-              {[
-                { cx: 40, cy: 90, val: '68%' },
-                { cx: 120, cy: 65, val: '74%' },
-                { cx: 200, cy: 45, val: '80%' },
-                { cx: 280, cy: 30, val: '86%' },
-                { cx: 360, cy: 25, val: '88%' }
-              ].map((pt, i) => (
+              {chartPoints.map((pt, i) => (
                 <g key={i}>
                   <circle cx={pt.cx} cy={pt.cy} r="4" fill="#ffffff" stroke="#6366f1" strokeWidth="2.5" />
                   <text
@@ -153,11 +176,14 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
             </svg>
           </div>
           <div className="flex justify-between text-[11px] text-[#8E95A5] dark:text-[#70707B] font-mono pt-1">
-            <span>Test 1</span>
-            <span>Test 2</span>
-            <span>Test 3</span>
-            <span>Test 4</span>
-            <span className="font-bold text-[#4F46E5] dark:text-[#818CF8]">Latest</span>
+            {chartPoints.map((pt, i) => (
+              <span
+                key={i}
+                className={i === chartPoints.length - 1 ? 'font-bold text-[#4F46E5] dark:text-[#818CF8]' : ''}
+              >
+                {pt.label}
+              </span>
+            ))}
           </div>
         </div>
 

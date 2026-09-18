@@ -11,12 +11,14 @@ import {
   TrendingUp,
   Users,
   Settings,
+  User,
   Plus,
   Flame,
   Sun,
   Moon,
   ChevronRight,
-  Compass
+  Compass,
+  Binary
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { CognoraLogo } from './CognoraLogo';
@@ -28,7 +30,8 @@ interface MobileDrawerProps {
   onSelectTab: (tabId: string) => void;
   onOpenUpload: () => void;
   onOpenProfile: () => void;
-  onToggleLanding?: () => void;
+  onOpenSettings: () => void;
+  onToggleLanding: () => void;
   user: UserProfile;
   darkMode: boolean;
   onToggleDarkMode: () => void;
@@ -41,6 +44,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   onSelectTab,
   onOpenUpload,
   onOpenProfile,
+  onOpenSettings,
   onToggleLanding,
   user,
   darkMode,
@@ -64,6 +68,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
       items: [
         { id: 'quizzes', label: 'Interactive Quizzes', icon: CheckCircle2, desc: 'Practice by topic' },
         { id: 'flashcards', label: 'Active Flashcards', icon: Layers, desc: 'Spaced repetition cards' },
+        { id: 'formulas', label: 'Formula Sheet', icon: Binary, desc: 'Master formulas in one place' },
         { id: 'exams', label: 'Exam Mode', icon: Clock, badge: 'Timed', desc: 'Mock test simulation' }
       ]
     },
@@ -220,17 +225,33 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
         </div>
 
         {/* Drawer Bottom Bar: Profile & Settings */}
-        <div className="px-5 py-3 border-t border-[#E2E4E9] dark:border-white/[0.08] bg-[#F7F8FC]/80 dark:bg-[#131318]/90 flex items-center justify-between">
-          <button
-            onClick={() => {
-              onOpenProfile();
-              onClose();
-            }}
-            className="flex items-center gap-2 text-xs font-semibold text-[#4B5563] hover:text-[#111827] dark:text-[#A8A8B3] dark:hover:text-white py-1.5 px-2 rounded-xl active-press"
-          >
-            <Settings className="w-4 h-4 text-indigo-500" />
-            <span>Settings</span>
-          </button>
+        <div className="px-4 py-3 border-t border-[#E2E4E9] dark:border-white/[0.08] bg-[#F7F8FC]/80 dark:bg-[#131318]/90 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => {
+                onOpenProfile();
+                onClose();
+              }}
+              className="flex items-center gap-1.5 text-xs font-semibold text-[#4B5563] hover:text-[#111827] dark:text-[#A8A8B3] dark:hover:text-white py-1.5 px-2.5 rounded-xl bg-stone-100 dark:bg-white/[0.06] active-press"
+            >
+              <div className={`w-4 h-4 rounded-full bg-gradient-to-tr ${user.avatarColor || 'from-indigo-600 to-violet-500'} text-white flex items-center justify-center text-[9px] font-bold`}>
+                {user.name.slice(0, 1).toUpperCase()}
+              </div>
+              <span>Profile</span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (onOpenSettings) onOpenSettings();
+                else onOpenProfile();
+                onClose();
+              }}
+              className="flex items-center gap-1.5 text-xs font-semibold text-[#4B5563] hover:text-[#111827] dark:text-[#A8A8B3] dark:hover:text-white py-1.5 px-2.5 rounded-xl bg-stone-100 dark:bg-white/[0.06] active-press"
+            >
+              <Settings className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Settings</span>
+            </button>
+          </div>
 
           {onToggleLanding && (
             <button
@@ -238,16 +259,12 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 onClose();
                 onToggleLanding();
               }}
-              className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 py-1.5 px-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/50 dark:border-indigo-500/20 active-press"
+              className="flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 py-1.5 px-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/50 dark:border-indigo-500/20 active-press"
             >
               <Compass className="w-3.5 h-3.5" />
-              <span>Landing Page</span>
+              <span>Landing</span>
             </button>
           )}
-
-          <span className="text-[10px] text-[#8E95A5] dark:text-[#70707B] font-mono hidden sm:inline">
-            Cognora Mobile
-          </span>
         </div>
       </div>
     </div>

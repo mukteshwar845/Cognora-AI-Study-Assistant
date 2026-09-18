@@ -1,11 +1,40 @@
-import { UserProfile, StudyMaterial, StudyPlanSession, StudyGroup, DiscussionThread, NotificationItem, ExamAttempt } from '../types';
+import { UserProfile, StudyMaterial, StudyPlanSession, StudyGroup, DiscussionThread, NotificationItem, ExamAttempt, AppSettings } from '../types';
+
+export const initialAppSettings: AppSettings = {
+  dailyStudyGoalMinutes: 60,
+  weeklyStudyGoalHours: 15,
+  gradingScale: 'percentage',
+  spacedRepetitionSpeed: 'standard',
+  defaultAnswerMode: 'simple',
+  defaultQuizDifficulty: 'medium',
+  aiTutorPersona: 'supportive',
+  customAiDirectives: 'Provide clear, step-by-step conceptual breakdowns with memorable exam mnemonics.',
+  geminiApiKey: '',
+  aiModel: 'gemini-3.8-flash',
+  dailyReminderEnabled: true,
+  dailyReminderTime: '19:00',
+  examAlertsEnabled: true,
+  streakSaverEnabled: true,
+  soundEffectsEnabled: true,
+  confettiEnabled: true,
+  themePreference: 'system',
+  accentColor: 'indigo',
+  layoutDensity: 'comfortable'
+};
 
 export const initialUser: UserProfile = {
   id: 'user_mukteswar_1',
   name: 'Mukteswar',
   email: 'mukteswar.g@example.edu',
+  institution: 'National Institute of Technology',
+  bio: 'CS Undergrad specializing in Distributed Systems & AI. Aiming for 9.0+ CGPA.',
   degree: 'B.Tech in Computer Science & Engineering',
   semester: 'Semester 5',
+  graduationYear: '2027',
+  targetGpa: '9.2 / 10.0',
+  academicLevel: 'undergraduate',
+  avatarColor: 'from-indigo-600 via-purple-600 to-violet-500',
+  avatarIcon: 'brain',
   streakDays: 7,
   weekActivity: [true, true, true, true, true, true, true], // Mon through Sun
   totalStudyMinutes: 755, // 12h 35m
@@ -213,18 +242,54 @@ Singly Linked List Insertion at head: O(1), at tail without tail pointer: O(n).`
     ],
     questions: [
       {
-        id: 'q_1',
-        question: 'Explain how a Queue can be implemented using two Stacks. Provide push and pop cost analysis.',
-        answer: 'Maintain Stack1 for enqueue and Stack2 for dequeue. When enqueuing, push directly onto Stack1 in O(1). When dequeuing, if Stack2 is empty, pop all elements from Stack1 and push them into Stack2 (reversing order into FIFO), then pop Stack2. The amortized cost per dequeue operation is O(1).',
-        marks: 5,
-        examType: 'University Exam / Technical Interview'
+        id: 'q_dsa_s1',
+        question: 'Define false overflow in a linear queue and explain how circular queues resolve it.',
+        answer: '• False Overflow: In a linear queue, elements dequeued from the front leave unutilized memory holes at indices 0..front-1. When rear reaches MAX-1, new enqueues are rejected despite free slots.\n• Solution: Circular queues wrap the rear pointer using (rear + 1) % Capacity, reusing freed front memory slots in constant O(1) time.',
+        marks: 2,
+        type: 'short',
+        examType: 'Short Answer (2 Marks)',
+        importance: 'critical',
+        expectedPoints: ['Definition of false overflow', 'Rear pointer wrap-around', 'Modulo arithmetic']
       },
       {
-        id: 'q_2',
+        id: 'q_dsa_s2',
         question: 'Differentiate between array-based and linked list-based implementations of a Stack.',
-        answer: 'Array-based stacks require contiguous memory, have a predetermined maximum capacity (risk of overflow unless dynamically resized with O(n) copy cost), but offer O(1) cache-friendly operations. Linked list stacks grow dynamically with no fixed size limit, but each element requires extra memory pointer overhead and suffers from scattered heap cache misses.',
-        marks: 4,
-        examType: 'Midterm Theory'
+        answer: '• Array Stack: Contiguous memory layout, fixed capacity (or O(n) reallocation), cache-friendly constant-time operations.\n• Linked List Stack: Dynamic growth with no fixed capacity limit, but requires 8 extra bytes per node for pointer references and incurs heap cache misses.',
+        marks: 3,
+        type: 'short',
+        examType: 'Short Answer (3 Marks)',
+        importance: 'high',
+        expectedPoints: ['Memory continuity', 'Capacity limits', 'Cache locality vs pointer overhead']
+      },
+      {
+        id: 'q_dsa_l1',
+        question: 'Explain how a FIFO Queue can be implemented using two Stacks. Provide algorithms and amortized runtime proof.',
+        answer: '1. Structure: Stack1 is the insertion inbox, Stack2 is the deletion outbox.\n\n2. Enqueue(x): Push x directly onto Stack1 in O(1).\n\n3. Dequeue():\n• If both stacks are empty: return Underflow.\n• If Stack2 is non-empty: pop from Stack2 and return.\n• If Stack2 is empty: pop all elements from Stack1 and push them into Stack2 (which reverses LIFO order into FIFO order), then pop Stack2.\n\n4. Complexity Proof: Each element is pushed to Stack1 once, popped from Stack1 once, pushed to Stack2 once, and popped from Stack2 once (4 operations total). Thus across n operations, amortized cost per operation is deterministic O(1).',
+        marks: 10,
+        type: 'long',
+        examType: 'Long Descriptive (10 Marks)',
+        importance: 'critical',
+        expectedPoints: [
+          'Inbox/outbox dual stack design',
+          'Order reversal mechanism',
+          'Underflow boundary check',
+          '4-step amortized O(1) proof'
+        ]
+      },
+      {
+        id: 'q_dsa_l2',
+        question: 'Explain the complete architecture, boundary condition checks, and algorithms for Circular Queue operations.',
+        answer: '1. Invariant Pointers: front and rear initialized to -1.\n• Empty condition: front == -1\n• Full condition: (rear + 1) % Capacity == front\n• Single element condition: front == rear\n\n2. Enqueue Algorithm: Check full condition. If empty, front=0, rear=0. Otherwise rear = (rear + 1) % Capacity. array[rear] = x.\n\n3. Dequeue Algorithm: Check empty condition. val = array[front]. If front == rear, reset front = -1, rear = -1. Otherwise front = (front + 1) % Capacity. Return val.\n\n4. Complexity: Deterministic O(1) time and space.',
+        marks: 10,
+        type: 'long',
+        examType: 'Long Descriptive (10 Marks)',
+        importance: 'critical',
+        expectedPoints: [
+          'Full/empty mathematical invariants',
+          'Modulo wrap-around',
+          'Single element reset logic',
+          'O(1) time analysis'
+        ]
       }
     ],
     flashcards: [
@@ -419,6 +484,20 @@ Durability: Once committed, state changes persist even across power/system crash
         formula: '(R1 ∩ R2) → R1  OR  (R1 ∩ R2) → R2',
         description: 'Mathematical test to verify whether relational decomposition guarantees lossless join reconstruction.',
         subject: 'Database Management'
+      },
+      {
+        id: 'f_db_2',
+        name: 'B+ Tree Node Capacity Limits',
+        formula: '⌈m / 2⌉ - 1 ≤ Number of Keys ≤ m - 1',
+        description: 'Defines minimum and maximum search key capacity for internal nodes of order m in a B+ Tree index.',
+        subject: 'Database Management'
+      },
+      {
+        id: 'f_db_3',
+        name: 'Block Nested Loop Join I/O Cost',
+        formula: 'Disk I/O = B_R + ⌈B_R / (M - 2)⌉ × B_S',
+        description: 'Calculates the number of block transfers needed when joining relation R and S with buffer memory of M blocks.',
+        subject: 'Database Management'
       }
     ],
     hasFormulas: true,
@@ -440,11 +519,61 @@ Durability: Once committed, state changes persist even across power/system crash
     ],
     questions: [
       {
-        id: 'q_db_1',
-        question: 'Differentiate between 3NF and BCNF with a concrete example.',
-        answer: 'In 3NF, for any non-trivial functional dependency X -> A, either X is a super key OR A is a prime attribute (part of any candidate key). In BCNF, X must strictly be a super key, regardless of whether A is prime. Thus, if a relation has overlapping candidate keys, it can be in 3NF without being in BCNF.',
+        id: 'q_db_s1',
+        question: 'What is a partial dependency and in which normal form is it eliminated?',
+        answer: '• Definition: A partial dependency occurs when a non-prime attribute depends on a proper subset of a candidate key (rather than the whole composite key).\n• Elimination: Partial dependencies are strictly eliminated in Second Normal Form (2NF). Relations with single-attribute primary keys are automatically in 2NF if they are in 1NF.',
+        marks: 2,
+        type: 'short',
+        examType: 'Short Answer (2 Marks)',
+        importance: 'high'
+      },
+      {
+        id: 'q_db_s2',
+        question: 'State the ACID properties in transaction processing and identify the component responsible for Durability.',
+        answer: '• Atomicity (Recovery Manager), Consistency (Application/Integrity constraints), Isolation (Concurrency Control manager), Durability (Write-Ahead Logging / Recovery Manager).\n• Durability guarantees that committed data survives power failures and system crashes via non-volatile log write buffers.',
+        marks: 3,
+        type: 'short',
+        examType: 'Short Answer (3 Marks)',
+        importance: 'high'
+      },
+      {
+        id: 'q_db_c1',
+        question: 'Differentiate between 3NF and BCNF with a concrete example of dependency preservation.',
+        answer: '• 3NF Rule: For every non-trivial X → A, X must be a super key OR A must be a prime attribute (part of candidate key).\n• BCNF Rule: For every non-trivial X → A, X must strictly be a super key.\n• Difference: In relations with overlapping candidate keys (e.g., R(Student, Course, Instructor)), BCNF decomposition may destroy functional dependencies that 3NF preserves with lossless join.',
         marks: 5,
-        examType: 'University Semester Exam'
+        type: 'conceptual',
+        examType: 'Midterm Conceptual (5 Marks)',
+        importance: 'critical'
+      },
+      {
+        id: 'q_db_l1',
+        question: 'Explain the complete normalization hierarchy from 1NF through BCNF. Provide schema examples, anomalies, and formal mathematical conditions.',
+        answer: '1. Anomalies in Unnormalized Data: Insertion anomaly (cannot record entity without foreign relation), Deletion anomaly (deleting one entity accidentally deletes other facts), Modification anomaly (inconsistent data after partial update).\n\n2. 1NF (Scalar Atomicity): Attribute values must be atomic and indivisible with no repeating columns or sets.\n\n3. 2NF (No Partial Dependencies): Relation is in 1NF and every non-prime attribute is fully functionally dependent on the primary key.\n\n4. 3NF (No Transitive Dependencies): In 2NF and for every X → Y, either X is a super key or Y is a prime attribute.\n\n5. BCNF (Strict Superkey Determinants): Stricter than 3NF; removes cases where non-trivial dependencies have non-superkey determinants even if the RHS is prime.\n\n6. Summary Table: Contrast lossless join guarantees vs. functional dependency preservation across 3NF and BCNF.',
+        marks: 10,
+        type: 'long',
+        examType: 'Long Descriptive (10 Marks)',
+        importance: 'critical',
+        expectedPoints: [
+          'Anomalies (Insertion, Deletion, Update)',
+          '1NF through BCNF mathematical criteria',
+          'Prime vs Non-prime attribute definitions',
+          'Dependency preservation vs Lossless join trade-off'
+        ]
+      },
+      {
+        id: 'q_db_l2',
+        question: 'Describe Concurrency Control protocols in DBMS. Contrast Two-Phase Locking (2PL) with Strict 2PL and explain Deadlock handling.',
+        answer: '1. Serializability: Conflict serializability verified via precedence (serialization) graphs; acyclic graphs prove serial equivalence.\n\n2. Basic 2PL (Two-Phase Locking):\n• Growing Phase: Transaction may acquire locks but cannot release any.\n• Shrinking Phase: Transaction may release locks but cannot acquire new locks.\n• Guarantee: Ensures conflict serializability but may suffer cascading aborts and deadlocks.\n\n3. Strict 2PL:\n• Exclusive locks held until transaction commits or aborts.\n• Eliminates cascading rollbacks completely (recoverable and cascadeless schedules).\n\n4. Deadlock Detection and Recovery:\n• Wait-For Graph (WFG) cycle detection.\n• Wait-Die (non-preemptive) and Wound-Wait (preemptive) timestamp protocols.\n• Victim selection and rollback mechanisms.',
+        marks: 10,
+        type: 'long',
+        examType: 'Long Descriptive (10 Marks)',
+        importance: 'critical',
+        expectedPoints: [
+          'Conflict serializability & Precedence graphs',
+          'Growing vs Shrinking phase of 2PL',
+          'Strict 2PL cascadeless abort guarantee',
+          'Wait-For Graph & Wound-Wait deadlock prevention'
+        ]
       }
     ],
     flashcards: [
@@ -582,11 +711,61 @@ Perceptron is single-layer threshold classifier: y = sign(w . x + b). Cannot sol
     ],
     questions: [
       {
-        id: 'q_ml_1',
+        id: 'q_ml_s1',
+        question: 'Differentiate between L1 (Lasso) and L2 (Ridge) regularization penalties in terms of feature selection.',
+        answer: '• L1 Regularization (Lasso): Adds the absolute sum of weights (λ∑|w_j|) to the cost function. Geometrically produces sparse models by driving redundant weights to exactly zero, effectively acting as an automatic feature selector.\n• L2 Regularization (Ridge): Adds the squared magnitude of weights (λ∑w_j²) to the cost function. Smoothly shrinks all weights towards zero without making any feature weight exactly zero.',
+        marks: 2,
+        type: 'short',
+        examType: 'Short Answer (2 Marks)',
+        importance: 'high'
+      },
+      {
+        id: 'q_ml_s2',
+        question: 'What is the role of the learning rate α in gradient descent and what happens if it is chosen poorly?',
+        answer: '• Role: Learning rate α scales the step size taken in the negative gradient direction.\n• Too large α: The optimizer can overshoot the global minimum, leading to oscillation or numerical divergence.\n• Too small α: Convergence becomes prohibitively slow and may get trapped in flat plateau regions.',
+        marks: 3,
+        type: 'short',
+        examType: 'Short Answer (3 Marks)',
+        importance: 'high'
+      },
+      {
+        id: 'q_ml_c1',
         question: 'Explain why single-layer perceptrons cannot learn the XOR function.',
-        answer: 'The XOR truth table produces output points (0,0)->0, (1,1)->0, (0,1)->1, (1,0)->1 which cannot be separated by any single straight hyper-plane in 2D space. A single-layer perceptron creates only linear decision boundaries, necessitating at least one hidden non-linear layer to project the points into a separable higher dimension.',
+        answer: '• Linear Separability: The XOR truth table outputs (0,0)→0, (1,1)→0, (0,1)→1, (1,0)→1. Plotting these 4 points reveals that no single straight hyper-plane can partition 1s from 0s.\n• Limitation: A single-layer perceptron creates only one hyper-plane decision boundary. Overcoming XOR requires at least one non-linear hidden layer (Multi-Layer Perceptron) to warp the feature space into a higher-dimensional linearly separable representation.',
         marks: 5,
-        examType: 'University Exam'
+        type: 'conceptual',
+        examType: 'Midterm Conceptual (5 Marks)',
+        importance: 'critical'
+      },
+      {
+        id: 'q_ml_l1',
+        question: 'Derive the Gradient Descent parameter update rule for Linear Regression with Mean Squared Error (MSE). Explain Batch, Stochastic, and Mini-Batch variants.',
+        answer: '1. Hypothesis and Cost Function:\n• Hypothesis: h_θ(x) = ∑_{j=0}^{n} θ_j x_j = θ^T x\n• Cost Function: J(θ) = (1 / 2m) ∑_{i=1}^{m} (h_θ(x^{(i)}) - y^{(i)})²\n\n2. Partial Derivative Derivation:\n• ∂J/∂θ_j = (1 / m) ∑_{i=1}^{m} (h_θ(x^{(i)}) - y^{(i)}) · x_j^{(i)}\n• Update rule: θ_j := θ_j - α · (1 / m) ∑_{i=1}^{m} (h_θ(x^{(i)}) - y^{(i)}) x_j^{(i)}\n\n3. Optimizer Variants:\n• Batch Gradient Descent: Computes gradient over all m samples per step. Smooth convergence, but memory-intensive for large datasets.\n• Stochastic Gradient Descent (SGD): Updates parameters after every single sample. Extremely fast, high variance, helps escape shallow local minima.\n• Mini-Batch Gradient Descent: Splits data into batches of size B (e.g., 32, 64, 128), combining vectorization speed with smooth convergence.',
+        marks: 10,
+        type: 'long',
+        examType: 'Long Descriptive (10 Marks)',
+        importance: 'critical',
+        expectedPoints: [
+          'MSE objective formulation',
+          'Step-by-step calculus derivation of partial derivative',
+          'Simultaneous parameter update equation',
+          'Comparison of Batch, Mini-batch, and Stochastic variants'
+        ]
+      },
+      {
+        id: 'q_ml_l2',
+        question: 'Formulate Binary Logistic Regression from first principles. Why does Mean Squared Error fail, and how does Binary Cross-Entropy ensure convexity?',
+        answer: '1. Model Formulation:\n• Uses the Sigmoid activation: σ(z) = 1 / (1 + e^(-z)) to map z = θ^T x to range (0, 1) representing probability P(y=1|x).\n\n2. Why MSE Fails for Classification:\n• Substituting non-linear sigmoid into quadratic loss yields a non-convex surface plagued with local minima and flat gradients (vanishing gradient problem near saturation points).\n\n3. Binary Cross-Entropy Loss (Log-Loss):\n• Derived via maximum likelihood estimation under Bernoulli distribution:\n• L(θ) = - (1/m) ∑ [ y^{(i)} log(h_θ(x^{(i)})) + (1 - y^{(i)}) log(1 - h_θ(x^{(i)})) ]\n• Convexity: The Hessian matrix of cross-entropy with sigmoid is positive semi-definite everywhere, ensuring a unique global minimum.\n• Penalty Mechanism: Confident incorrect predictions (predicting 0 when y=1) incur an infinite loss penalty (-log(0) → ∞).',
+        marks: 10,
+        type: 'long',
+        examType: 'Long Descriptive (10 Marks)',
+        importance: 'critical',
+        expectedPoints: [
+          'Sigmoid activation function definition & properties',
+          'Mathematical explanation of why MSE is non-convex for sigmoid',
+          'Cross-Entropy log-likelihood formulation',
+          'Gradient update equivalence to linear regression'
+        ]
       }
     ],
     flashcards: [
