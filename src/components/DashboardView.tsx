@@ -25,18 +25,12 @@ import {
   FileText,
   ArrowUpRight,
   Settings,
-  GraduationCap,
-  X,
-  Compass,
   BookmarkCheck,
   HelpCircle,
   Calculator
 } from 'lucide-react';
 import {
-  EDUCATION_TIERS,
-  SUBJECT_DISCIPLINES,
-  ACADEMIC_TRACK_PRESETS,
-  AcademicTrackPreset
+  SUBJECT_DISCIPLINES
 } from '../data/academicTracks';
 
 interface DashboardViewProps {
@@ -68,8 +62,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedDiscipline, setSelectedDiscipline] = useState<SubjectDiscipline>('all');
-  const [showTrackModal, setShowTrackModal] = useState(false);
-  const [trackSwitchMessage, setTrackSwitchMessage] = useState<string | null>(null);
 
   // Filter materials by selected discipline if any
   const filteredMaterials = useMemo(() => {
@@ -127,28 +119,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     onOpenUpload();
   };
 
-  // Handle switching academic track preset
-  const handleSelectTrack = (preset: AcademicTrackPreset) => {
-    if (onUpdateUser) {
-      const updatedUser: UserProfile = {
-        ...user,
-        academicLevel: preset.tier,
-        degree: preset.degreeLabel,
-        institution: preset.institutionExample,
-        bio: preset.motto,
-        subjectsEnrolled: preset.subjects,
-        weakTopics: preset.sampleTopics.weak,
-        strongTopics: preset.sampleTopics.strong
-      };
-      onUpdateUser(updatedUser);
-      setTrackSwitchMessage(`Switched to "${preset.name}"! Subjects & study goals adapted.`);
-      setTimeout(() => setTrackSwitchMessage(null), 3500);
-    }
-    setShowTrackModal(false);
-  };
-
-  const currentTierInfo = EDUCATION_TIERS[user.academicLevel || 'undergraduate'] || EDUCATION_TIERS.undergraduate;
-
   // Empty state if library has 0 documents
   if (!materials || materials.length === 0) {
     return (
@@ -181,51 +151,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
-      {/* Toast Alert when track switched */}
-      {trackSwitchMessage && (
-        <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center justify-between shadow-xs animate-in slide-in-from-top-3 duration-200">
-          <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span>{trackSwitchMessage}</span>
-          </div>
-          <button
-            onClick={() => setTrackSwitchMessage(null)}
-            className="text-emerald-600 hover:text-emerald-800 dark:hover:text-emerald-200 p-1"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
-
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          1. UNIVERSAL EDUCATION & LEVEL HUB BANNER
-          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <div className="px-4 py-2.5 rounded-2xl bg-white dark:bg-[#131318] border border-[#E2E4E9] dark:border-white/[0.08] flex flex-wrap items-center justify-between gap-3 shadow-2xs">
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400 font-mono flex items-center gap-1">
-            <GraduationCap className="w-3.5 h-3.5 text-indigo-500" />
-            Active Education Tier:
-          </span>
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-500/30">
-            {currentTierInfo.badge}
-          </span>
-          <span className="text-xs text-stone-600 dark:text-stone-300 font-medium hidden md:inline">
-            {user.degree || currentTierInfo.gradeRange}
-          </span>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setShowTrackModal(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-500/30 transition-all active:scale-95 shadow-2xs"
-        >
-          <Compass className="w-3.5 h-3.5" />
-          <span>Switch Education Track / Level</span>
-        </button>
-      </div>
-
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          2. WELCOME HERO ("Today" Section)
+          1. WELCOME HERO ("Today" Section)
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-indigo-50/90 via-white to-violet-50/50 dark:bg-gradient-to-r dark:from-[#131318] dark:via-[#19191F] dark:to-[#131318] border border-indigo-100/90 dark:border-white/[0.08] text-[#111827] dark:text-[#F5F5F7] shadow-xs relative overflow-hidden transition-colors duration-200">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-600/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
@@ -916,114 +843,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </button>
         </div>
       </div>
-
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          9. ACADEMIC TRACK SWITCHER MODAL
-          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {showTrackModal && (
-        <div
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowTrackModal(false);
-          }}
-          className="fixed inset-0 z-50 bg-stone-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
-        >
-          <div className="bg-white dark:bg-[#111116] border border-[#E2E4E9] dark:border-white/[0.08] rounded-3xl max-w-2xl w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-            {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-[#E2E4E9] dark:border-white/[0.08] flex items-center justify-between shrink-0 bg-stone-50/70 dark:bg-[#16161C]/70">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-                  <Compass className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-heading font-bold text-base text-[#111827] dark:text-[#F5F5F7]">
-                    Choose Your Education Level & Track
-                  </h3>
-                  <p className="text-xs text-[#4B5563] dark:text-[#A8A8B3]">
-                    Cognora adapts across Minor School, High School, UG, PG, and Competitive exams.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowTrackModal(false)}
-                className="p-1.5 rounded-xl text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/[0.06] transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Presets List */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
-              {ACADEMIC_TRACK_PRESETS.map((preset) => {
-                const isCurrent = user.academicLevel === preset.tier && user.degree === preset.degreeLabel;
-                return (
-                  <div
-                    key={preset.id}
-                    onClick={() => handleSelectTrack(preset)}
-                    className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                      isCurrent
-                        ? 'bg-indigo-50/80 dark:bg-indigo-950/40 border-indigo-500 text-indigo-900 dark:text-indigo-200 ring-2 ring-indigo-500/20 shadow-xs'
-                        : 'bg-white dark:bg-[#16161C] border-[#E2E4E9] dark:border-white/[0.08] hover:border-indigo-300 dark:hover:border-indigo-500/40 hover:bg-stone-50/60 dark:hover:bg-[#1c1c24]'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3.5">
-                      <div className="text-2xl p-2 rounded-xl bg-stone-100 dark:bg-white/[0.06] shrink-0">
-                        {preset.icon}
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-heading font-bold text-sm text-[#111827] dark:text-[#F5F5F7]">
-                            {preset.name}
-                          </h4>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-stone-100 dark:bg-white/[0.08] text-stone-600 dark:text-stone-300 font-semibold">
-                            {EDUCATION_TIERS[preset.tier].shortLabel}
-                          </span>
-                        </div>
-                        <p className="text-xs text-stone-500 dark:text-stone-400">
-                          {preset.degreeLabel} &bull; {preset.institutionExample}
-                        </p>
-                        <div className="flex flex-wrap gap-1.5 pt-1">
-                          {preset.subjects.map((sub) => (
-                            <span
-                              key={sub}
-                              className="text-[11px] px-2 py-0.5 rounded-md bg-stone-100 dark:bg-white/[0.04] text-stone-700 dark:text-stone-300 font-medium"
-                            >
-                              {sub}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all ${
-                        isCurrent
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-stone-100 dark:bg-white/[0.08] text-stone-700 dark:text-stone-200 hover:bg-indigo-600 hover:text-white'
-                      }`}
-                    >
-                      {isCurrent ? 'Active Track' : 'Select Track'}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-[#E2E4E9] dark:border-white/[0.08] flex items-center justify-between bg-stone-50/50 dark:bg-[#16161C]/50">
-              <span className="text-[11px] text-stone-500">
-                You can also customize individual subjects and exams in Settings.
-              </span>
-              <button
-                onClick={() => setShowTrackModal(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-stone-600 dark:text-stone-300 hover:bg-stone-200/50 dark:hover:bg-white/[0.06] transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
+

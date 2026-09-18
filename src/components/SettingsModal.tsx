@@ -46,6 +46,7 @@ import {
 } from '../types';
 import { ThemePreference, ResolvedTheme } from '../lib/theme';
 import { calculateStorageUsage } from '../lib/storage';
+import { ACADEMIC_TRACK_PRESETS } from '../data/academicTracks';
 
 const AVATAR_GRADIENTS = [
   { id: 'indigo', class: 'from-indigo-600 via-purple-600 to-violet-500', name: 'Indigo Aura' },
@@ -600,6 +601,50 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         placeholder="e.g. 9.2 / 10 or 3.8 / 4.0"
                         className="w-full p-2 rounded-xl border border-[#E2E4E9] dark:border-white/[0.08] bg-white dark:bg-[#19191F] text-xs text-[#111827] dark:text-[#F5F5F7] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden"
                       />
+                    </div>
+                  </div>
+
+                  {/* Quick Preset Auto-Fill */}
+                  <div className="pt-2.5 border-t border-[#E2E4E9] dark:border-white/[0.08] space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider font-mono">
+                        Quick Preset (1-Click Auto-Fill Program & Subjects)
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {ACADEMIC_TRACK_PRESETS.map((preset) => {
+                        const isSelected =
+                          profileData.academicLevel === preset.tier && profileData.degree === preset.degreeLabel;
+                        return (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            onClick={() => {
+                              setProfileData({
+                                ...profileData,
+                                academicLevel: preset.tier,
+                                degree: preset.degreeLabel,
+                                institution: preset.institutionExample,
+                                bio: preset.motto,
+                                subjectsEnrolled: preset.subjects,
+                                weakTopics: preset.sampleTopics.weak,
+                                strongTopics: preset.sampleTopics.strong
+                              });
+                            }}
+                            className={`p-2 rounded-xl text-left border transition-all text-xs flex items-center gap-2 cursor-pointer ${
+                              isSelected
+                                ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-500 text-indigo-700 dark:text-indigo-300 font-semibold shadow-2xs'
+                                : 'bg-white dark:bg-[#19191F] border-stone-200 dark:border-white/[0.08] text-stone-700 dark:text-stone-300 hover:border-indigo-300 dark:hover:border-indigo-500/40'
+                            }`}
+                          >
+                            <span className="text-base shrink-0">{preset.icon}</span>
+                            <div className="truncate min-w-0">
+                              <div className="truncate font-semibold text-xs">{preset.name}</div>
+                              <div className="text-[10px] text-stone-400 truncate">{preset.degreeLabel}</div>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
