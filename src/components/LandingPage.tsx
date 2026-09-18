@@ -25,7 +25,6 @@ import {
   TrendingUp,
   LogIn,
   Scale,
-  Play,
   Lightbulb,
   CheckCircle
 } from 'lucide-react';
@@ -179,12 +178,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Features
             </button>
             <button
-              onClick={() => scrollToSection('interactive-previews')}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              Live Demo
-            </button>
-            <button
               onClick={() => setIsAboutOpen(true)}
               className="hover:text-white transition-colors cursor-pointer"
             >
@@ -196,18 +189,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="hidden sm:flex items-center gap-3">
             <button
               onClick={() => handleOpenSignIn('signin')}
-              className="px-3 py-1.5 text-xs font-semibold text-stone-300 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 text-xs font-semibold text-stone-200 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-xs"
             >
               <LogIn className="w-3.5 h-3.5 text-indigo-400" />
               <span>Log in</span>
-            </button>
-
-            <button
-              onClick={onStartStudying}
-              className="px-4 py-2 text-xs font-bold text-white rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-md hover:shadow-indigo-500/25 transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
-            >
-              <span>Launch Dashboard</span>
-              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -236,12 +221,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 className="text-left py-1 hover:text-white cursor-pointer"
               >
                 Features
-              </button>
-              <button
-                onClick={() => scrollToSection('interactive-previews')}
-                className="text-left py-1 hover:text-white cursor-pointer"
-              >
-                Live Demo
               </button>
               <button
                 onClick={() => {
@@ -313,21 +292,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </p>
 
         {/* Dual CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto mb-10">
+        <div className="flex items-center justify-center w-full sm:w-auto mb-10">
           <button
             onClick={onStartStudying}
             className="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-bold text-white bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-[0_10px_30px_-5px_rgba(79,70,229,0.5)] hover:shadow-[0_15px_35px_-5px_rgba(79,70,229,0.7)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer select-none group"
           >
             <span>Start Studying Free</span>
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
-          </button>
-
-          <button
-            onClick={() => scrollToSection('interactive-previews')}
-            className="w-full sm:w-auto px-6 py-4 rounded-2xl text-sm sm:text-base font-semibold text-stone-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-          >
-            <Play className="w-4 h-4 text-indigo-400 fill-indigo-400/40" />
-            <span>Explore Live Demos</span>
           </button>
         </div>
 
